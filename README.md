@@ -1,6 +1,6 @@
 # Proje Hala Yapım Aşamasındadır
 
-# Keybmin (BETA)
+#Keybmin (BETA)
 Kolay şekilde admin (Yönetim) paneli yapmanıza yardımcı olur.
 
 # #Keybmin Nedir?
