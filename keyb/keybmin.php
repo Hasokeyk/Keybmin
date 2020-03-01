@@ -15,6 +15,7 @@
 		private $pageTitle  = 'Not Found Title';
 		private $pageDesc   = 'Not Found Desc';
 		private $test       = false;
+		private $keys = [];
 
 		function __construct($sessionName,$settings = []){
 			global $mysqli;
@@ -191,6 +192,7 @@
 				$this->pageInfo = $pageInfo;
 				return $pageInfo;
 			}
+
 			return false;
 		}
 
@@ -201,7 +203,7 @@
 			if($ask->num_rows > 0){
 				$pageInfo = $ask->fetch_assoc();
 
-				if($pageInfo['control'] == 1){
+				if($pageInfo['control'] == '1'){
 					$pageAuth = json_decode($pageInfo['userAuth']);
 
 					foreach($pageAuth as $id => $authID){
@@ -435,7 +437,7 @@
 					if(isset($menu['sub']) and is_array($menu['sub'])){
 
 						printf($menuHtml['subLinkBefore'], ($menu['template']==$page?'active':''),$menu['link'], 'menu-'.$menu['UST'], 'menu-'.$menu['UST']);
-						echo $menu['title'];
+						echo '<i class="'.$menu['iconClass'].'"></i>'.$menu['title'];
 						echo $menuHtml['subLinkAfter'];
 						$this->getSidebarMenuToHtml($menu['sub'],$page,
 							[
@@ -452,7 +454,7 @@
 					}
 					else{
 						printf($menuHtml['linkBefore'], ($menu['template']==$page?'active':''),$menu['link'], 'menu-'.$menu['id'], 'menu-'.$menu['id']);
-						echo $menu['title'];
+						echo '<i class="'.$menu['iconClass'].'"></i>'.$menu['title'];
 						echo $menuHtml['linkAfter'];
 					}
 					echo $menuHtml['liAfter'];
@@ -483,6 +485,23 @@
 			return false;
 		}
 
+		function arrayValueLists($array = [],$keyName){
+
+			foreach($array as $key => $value){
+
+				if($key == $keyName){
+					$this->keys[] = $value;
+				}
+
+				if(is_array($value)){
+					$this->arrayValueLists($value, $keyName);
+				}
+
+			}
+
+			return $this->keys;
+		}
+
 		function getAuthList(){
 			global $mysqli;
 
@@ -497,14 +516,23 @@
 			return $allAuth;
 		}
 
-		function getPageList(){
+		function getPageList($filter = 'all',$filterType='type'){
 			global $mysqli;
 
 			$allPage = [];
-			$askPage = $mysqli->query("SELECT * FROM kb_pages");
+
+			if($filter == 'all'){
+				$sql = "SELECT * FROM kb_pages";
+			}else{
+				$sql = "SELECT * FROM kb_pages WHERE ".$filterType." = '".$filter."'";
+			}
+
+			$askPage = $mysqli->query($sql);
 			if($askPage->num_rows > 0){
 				while($page = $askPage->fetch_assoc()){
-					$allPage[] = $page;
+					if($this->userAuthCheck($page['shortcode'])){
+						$allPage[] = $page;
+					}
 				}
 			}
 

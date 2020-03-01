@@ -12,6 +12,8 @@
         $this->settings['THEMEPATH'].'assets/vendor/charts/c3charts/c3.css',
         $this->settings['THEMEPATH'].'assets/vendor/fonts/flag-icon-css/flag-icon.min.css',
         $this->settings['THEMEPATH'].'assets/vendor/multi-select/css/multi-select.css',
+	    $this->settings['THEMEPATH'].'assets/vendor/bootstrap-popover/css/bootstrap-picker.min.css',
+	    $this->settings['THEMEPATH'].'assets/vendor/icon-selector/css/bootstrap-iconpicker.min.css',
     ];
     $allCss = array_merge($globalCss,$csses??[]);
 
@@ -20,6 +22,9 @@
         $this->settings['THEMEPATH'].'assets/vendor/bootstrap/js/bootstrap.bundle.js',
         $this->settings['THEMEPATH'].'assets/vendor/slimscroll/jquery.slimscroll.js',
         $this->settings['THEMEPATH'].'assets/vendor/multi-select/js/jquery.multi-select.js',
+        $this->settings['THEMEPATH'].'assets/vendor/sweetalert2/sweetalert2.all.min.js',
+        $this->settings['THEMEPATH'].'assets/vendor/bootstrap-popover/js/bootstrap-picker.min.js',
+        $this->settings['THEMEPATH'].'assets/vendor/icon-selector/js/bootstrap-iconpicker.bundle.min.js',
         $this->settings['THEMEPATH'].'assets/libs/js/main-js.js',
         $this->settings['THEMEPATH'].'assets/libs/js/keybmin.js',
     ];

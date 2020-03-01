@@ -15,7 +15,7 @@
 		<div class="dashboard-ecommerce">
 			<div class="container-fluid dashboard-content ">
 
-				asd
+				<?=$this->pageInfo['title']?>
 
 			</div>
 		</div>

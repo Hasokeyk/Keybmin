@@ -2,9 +2,8 @@
 
     if(isset($post) and !empty($post)){
 
-        if($this->postControl(['pageName','pageDesc','pageLink','pageShortcode','pageTemplate','pageStatus','pageType','pageMenu','parentPageID'])){
+        if($this->postControl(['pageName','pageDesc','pageLink','pageShortcode','pageTemplate','pageStatus','pageType','pageMenu','iconClass']) === true){
 
-	        print_r($_POST);
             $pageAuth = $_POST['pageAuth']??[1];
             if(isset($_POST['pageAuth'])){
 	            $pageAuth = array_merge($pageAuth,["1"]);
@@ -12,8 +11,6 @@
 	            $pageAuth = [1];
             }
             $pageAuth = json_encode($pageAuth);
-            print_r($pageAuth);
-
 
             $askPage = $mysqli->query("SELECT * FROM kb_pages WHERE shortcode = '".$pageShortcode."' OR template = '".$pageTemplate."'");
             if($askPage->num_rows == 0){
@@ -27,6 +24,7 @@
                 status='".$pageStatus."',
                 control='1',
                 menu='".$pageMenu."',
+                iconClass='".$iconClass."',
                 type='".$pageType."',
                 userAuth='".$pageAuth."',
                 time='".time()."',
@@ -102,7 +100,13 @@
                                         <div class="col-6">
                                             <div class="form-group">
                                                 <label for="pageName" class="col-form-label"><?=_('Page Name')?></label>
-                                                <input id="pageName" name="pageName" type="text" class="form-control pageName" required>
+                                                <div class="input-group">
+                                                    <span class="input-group-prepend">
+                                                        <button class="btn btn-dark icon-selector" data-icon="fab fa-korvue" role="iconpicker"></button>
+                                                        <input type="hidden" name="iconClass" class="iconClass" value="fab fa-korvue">
+                                                    </span>
+                                                    <input id="pageName" name="pageName" type="text" class="form-control pageName" required>
+                                                </div>
                                             </div>
                                             <div class="form-group">
                                                 <label for="pageDesc" class="col-form-label"><?=_('Page Description')?></label>
@@ -157,9 +161,9 @@
                                                     <div class="form-group">
                                                         <label for="pageType" class="col-form-label"><?=_('Page Type')?></label>
                                                         <select class="form-control" name="pageType" id="pageType">
-                                                            <option value="normal"><?=_('Normal')?></option>
+                                                            <option value="Page"><?=_('Page')?></option>
                                                             <option value="ajax"><?=_('Ajax')?></option>
-                                                            <option value="warning"><?=_('warning')?></option>
+                                                            <option value="keybmin"><?=_('Keymin')?></option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -177,7 +181,7 @@
                                             <div class="form-group">
                                                 <label for="parentPageID" class="col-form-label"><?=_('Parent Page')?></label>
                                                 <select class="form-control parentPageID" name="parentPageID" id="parentPageID" required>
-                                                    <option value="0"><?=_('No Parent Page')?></option>
+                                                    <option value="0" data-pageshortcode=""><?=_('No Parent Page')?></option>
 			                                        <?php
 				                                        $allPage = $this->getPageList();
 				                                        foreach($allPage as $page){
