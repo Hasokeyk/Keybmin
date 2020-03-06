@@ -18,7 +18,9 @@
 		private $keys = [];
 
 		function __construct($sessionName,$settings = []){
-			global $mysqli;
+			global $mysqli,$db,$keybmin;
+
+			$keybmin = $this;
 
 			//putenv('LC_ALL='.$settings['lang']);
 			setlocale(LC_ALL, $settings['lang']);
@@ -44,7 +46,8 @@
 				$this->settings = array_merge([
 					'SITEURL' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/',
 					'THEMEPATH' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/themes/'.$this->settings['theme'].'/',
-					'THEMEDIR' => THEMEDIR.'/'.$this->settings['theme'].'/'
+					'THEMEDIR' => THEMEDIR.'/'.$this->settings['theme'].'/',
+					'KEYBPATH' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/keyb/',
 				],$this->settings);
 
 			}else{
@@ -58,7 +61,7 @@
 			if($loginCheck){
 				$this->page = $_GET['page']??'dashboard';
 			}else{
-				$this->page = 'login';
+				$this->page = $_GET['page']??'login';
 				goto goPage;
 			}
 			//USER LOGIN CHECK
@@ -77,7 +80,7 @@
 		function userLogin($mail,$password){
 			global $mysqli;
 
-			if($this->postControl(['mail','password']) and $_POST['post'] == 'login'){
+			if(isset($mail,$password)){
 
 				$ask = $mysqli->query("SELECT * FROM kb_users WHERE mail = '".$mail."' AND password='".md5($password)."'");
 				if($ask->num_rows > 0){
@@ -121,14 +124,65 @@
 
 		}
 
-		function loginCheck(){
+		function userRegister($fullname,$mail,$password,$confirmPassword){
 			global $mysqli;
+
+			if(isset($fullname,$mail,$password,$confirmPassword)){
+
+				$ask = $mysqli->query("SELECT * FROM kb_users WHERE mail = '".$mail."'");
+				if($ask->num_rows == 0){
+
+					if($password == $confirmPassword){
+						$register = $mysqli->query("INSERT INTO kb_users SET fullName = '".$fullname."',mail='".$mail."',password='".md5($password)."',authID='3',time='".time()."'");
+						if($register){
+
+							$this->userLogin($mail, $password);
+
+							$results = [
+								'status' => 'success',
+								'message' => _('Register Success. Auto Login. Wait... '),
+							];
+
+						}else{
+							$results = [
+								'status' => 'danger',
+								'message' => _('Register problem'),
+							];
+						}
+					}else{
+						$results = [
+							'status' => 'danger',
+							'message' => _('Password Not Match'),
+						];
+					}
+
+				}else{
+					$results = [
+						'status' => 'danger',
+						'message' => _('User Exists'),
+					];
+				}
+
+			}else{
+				$results = [
+					'status' => 'danger',
+					'message' => _('Parameters Not Found'),
+				];
+			}
+
+			return $results;
+
+		}
+
+		function loginCheck(){
+			global $mysqli,$db;
 
 			if(isset($_SESSION[$this->sessionName]['session']) and !empty($_SESSION[$this->sessionName]['session'])){
 
+				$seldosIOI = $db->query("SELECT * FROM users WHERE session = '".$_SESSION[$this->sessionName]['session']."'");
 				$ask = $mysqli->query("SELECT * FROM kb_users WHERE session = '".$_SESSION[$this->sessionName]['session']."'");
 				if($ask->num_rows > 0){
-					$this->userInfo = $ask->fetch_assoc();
+					$this->userInfo = array_merge($ask->fetch_assoc(),$seldosIOI[0]);
 					return true;
 				}else{
 					session_destroy();
@@ -150,7 +204,11 @@
 				$this->pageTitle = $pageInfo['title'];
 				$this->pageDesc  = $pageInfo['description'];
 
-				if(file_exists(THEMEDIR.$this->settings['theme'].'/'.$pageInfo['template'].'.php')){
+				if(file_exists(THEMEDIR.$this->settings['theme'].'/ajax/'.$pageInfo['template'].'.php') and $pageInfo['type']=='ajax'){
+					$pageFile = THEMEDIR.$this->settings['theme'].'/ajax/'.$pageInfo['template'];
+				}else if(file_exists(KEYB.'/pages/'.$pageInfo['template'].'.php') and $pageInfo['type']=='keybmin'){
+					$pageFile = KEYB.'/pages/'.$pageInfo['template'];
+				}else if(file_exists(THEMEDIR.$this->settings['theme'].'/'.$pageInfo['template'].'.php')){
 					$pageFile = THEMEDIR.$this->settings['theme'].'/'.$pageInfo['template'];
 				}else if(file_exists(THEMEDIR.$this->settings['theme'].'/pages/'.$pageInfo['template'].'.php')){
 					$pageFile = THEMEDIR.$this->settings['theme'].'/pages/'.$pageInfo['template'];
@@ -162,13 +220,18 @@
 
 				if($pageInfo['control'] == 1){
 
-					if(!$this->userAuthCheck($this->page,'template')){
-						$this->page = 'banned';
-						$pageInfo = $this->pageInfo($this->page);
-						$pageFile = THEMEDIR.$this->settings['theme'].'/'.$this->page;
+					if($this->loginCheck()){
+						if(!$this->userAuthCheck($this->page,'template')){
+							$this->page = 'banned';
+							$pageInfo = $this->pageInfo($this->page);
+							$pageFile = THEMEDIR.$this->settings['theme'].'/'.$this->page;
 
-						$this->pageTitle = $pageInfo['title'];
-						$this->pageDesc  = $pageInfo['description'];
+							$this->pageTitle = $pageInfo['title'];
+							$this->pageDesc  = $pageInfo['description'];
+							goto page404;
+						}
+					}else{
+						$pageFile = THEMEDIR.$this->settings['theme'].'/'.'login';
 						goto page404;
 					}
 
@@ -186,7 +249,7 @@
 		function pageInfo($page){
 			global $mysqli;
 
-			$ask = $mysqli->query("SELECT * FROM kb_pages WHERE template = '".$page."'");
+			$ask = $mysqli->query("SELECT * FROM kb_pages WHERE link = '?page=".$page."'");
 			if($ask->num_rows > 0){
 				$pageInfo = $ask->fetch_assoc();
 				$this->pageInfo = $pageInfo;
@@ -199,23 +262,25 @@
 		function userAuthCheck($page,$type = 'shortcode'){
 			global $mysqli;
 
-			$ask = $mysqli->query("SELECT * FROM kb_pages WHERE ".$type." = '".$page."'");
-			if($ask->num_rows > 0){
-				$pageInfo = $ask->fetch_assoc();
+			if($this->loginCheck()){
+				$ask = $mysqli->query("SELECT * FROM kb_pages WHERE ".$type." = '".$page."'");
+				if($ask->num_rows > 0){
+					$pageInfo = $ask->fetch_assoc();
 
-				if($pageInfo['control'] == '1'){
-					$pageAuth = json_decode($pageInfo['userAuth']);
+					if($pageInfo['control'] == '1'){
+						$pageAuth = json_decode($pageInfo['userAuth']);
 
-					foreach($pageAuth as $id => $authID){
-						if($authID == $this->userInfo['authID']){
-							return true;
-							break;
+						foreach($pageAuth as $id => $authID){
+							if($authID == $this->userInfo['authID']){
+								return true;
+								break;
+							}
 						}
+					}else{
+						return true;
 					}
-				}else{
-					return true;
-				}
 
+				}
 			}
 
 			return false;
@@ -320,7 +385,7 @@
 			if($jses != null){
 				if($this->test == true){
 					foreach($jses as $j){
-						echo '<link rel="preload" href="'.$c.'" as="script">'."\n";
+						echo '<link rel="preload" href="'.$j.'" as="script">'."\n";
 					}
 				}else{
 					echo '<link rel="preload" href="'.($this->settings['THEMEPATH'].'cache/'.$fileName.'.js').'" as="script">'."\n";
@@ -416,7 +481,7 @@
 				'liAfter'       => '</li>'."\n",
 				'linkBefore'    => '<a class="nav-link %s" href="%s">'."\n",
 				'linkAfter'     => "\n".'</a>'."\n",
-				'subLinkBefore' => '<a class="nav-link %s" href="%s" data-toggle="collapse" aria-expanded="false" data-target="#%s" aria-controls="%s">'."\n",
+				'subLinkBefore' => '<a class="nav-link dropdown %s" href="%s" data-toggle="collapse" aria-expanded="false" data-target="#%s" aria-controls="%s">'."\n",
 				'subLinkAfter'  => "\n".'</a>'."\n",
 			]
 			,$sub = false
@@ -447,7 +512,7 @@
 								'liAfter'       => '</li>'."\n",
 								'linkBefore'    => '<a class="nav-link %s" href="%s">'."\n",
 								'linkAfter'     => "\n".'</a>'."\n",
-								'subLinkBefore' => '<a class="nav-link %s" href="%s" data-toggle="collapse" aria-expanded="false" data-target="#%s" aria-controls="%s">'."\n",
+								'subLinkBefore' => '<a class="nav-link dropdown %s" href="%s" data-toggle="collapse" aria-expanded="false" data-target="#%s" aria-controls="%s">'."\n",
 								'subLinkAfter'  => "\n".'</a>'."\n"
 							], true);
 
