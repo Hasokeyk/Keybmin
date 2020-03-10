@@ -8,16 +8,22 @@
 	require $this->settings['THEMEDIR']."/header.php";
 	require $this->settings['THEMEDIR']."/sidebar.php";
 ?>
-	<!-- ============================================================== -->
-	<!-- wrapper  -->
-	<!-- ============================================================== -->
 	<div class="dashboard-wrapper">
-		<div class="dashboard-ecommerce">
-			<div class="container-fluid dashboard-content ">
+        <div class="container-fluid dashboard-content">
 
-				<?=$this->pageInfo['title']?>
+            <div class="row">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                    <div class="section-block" id="basicform">
+                        <h3 class="section-title"><?=$this->pageInfo['title']?></h3>
+                        <p><?=$this->pageInfo['description']?></p>
+                    </div>
 
-			</div>
+                    <!--CONTENT-->
+                    <!--CONTENT-->
+
+                </div>
+            </div>
+
 		</div>
 	</div>
 	<!-- ============================================================== -->

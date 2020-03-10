@@ -73,148 +73,150 @@
 	require $this->settings['THEMEDIR']."/sidebar.php";
 ?>
 
-    <div class="sidebar-content content-padding">
+    <div class="dashboard-wrapper">
+        <div class="container-fluid dashboard-content">
 
-        <div class="page-title">
-            <h1><?=$this->pageTitle();?></h1>
-            <p><?=$this->pageDesc();?></p>
-        </div>
-        <hr>
+            <div class="page-title">
+                <h1><?=$this->pageTitle();?></h1>
+                <p><?=$this->pageDesc();?></p>
+            </div>
+            <hr>
 
-        <?php
-            if(isset($result)){
-        ?>
-        <div class="alert alert-<?=$result['status']?> bg-<?=$result['status']?> text-white"><?=$result['message']?></div>
-        <?php
-            }
-        ?>
+            <?php
+                if(isset($result)){
+            ?>
+            <div class="alert alert-<?=$result['status']?> bg-<?=$result['status']?> text-white"><?=$result['message']?></div>
+            <?php
+                }
+            ?>
 
-        <div class="card">
-            <div class="card-body">
-                <form action="" method="post">
-                    <input type="hidden" name="post" value="true">
+            <div class="card">
+                <div class="card-body">
+                    <form action="" method="post">
+                        <input type="hidden" name="post" value="true">
 
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="pageName" class="col-form-label"><?=_('Page Name')?></label>
-                                <div class="input-group">
-                                    <span class="input-group-prepend">
-                                        <button class="btn btn-dark icon-selector" data-icon="fab fa-korvue" role="iconpicker"></button>
-                                        <input type="hidden" name="iconClass" class="iconClass" value="fab fa-korvue">
-                                    </span>
-                                    <input id="pageName" name="pageName" type="text" class="form-control pageName" required>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="pageName" class="col-form-label"><?=_('Page Name')?></label>
+                                    <div class="input-group">
+                                        <span class="input-group-prepend">
+                                            <button class="btn btn-dark icon-selector" data-icon="fab fa-korvue" role="iconpicker"></button>
+                                            <input type="hidden" name="iconClass" class="iconClass" value="fab fa-korvue">
+                                        </span>
+                                        <input id="pageName" name="pageName" type="text" class="form-control pageName" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pageDesc" class="col-form-label"><?=_('Page Description')?></label>
+                                    <input id="pageDesc" name="pageDesc" type="text" class="form-control" required>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label for="pageLink" class="col-form-label"><?=_('Page Link')?></label>
+                                            <input id="pageLink" name="pageLink" type="text" class="form-control pageLink" value="?page=" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label for="pageShortcode" class="col-form-label"><?=_('Page Shortcode')?></label>
+                                            <input id="pageShortcode" name="pageShortcode" type="text" class="form-control pageShortcode" value="" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label for="pageTemplate" class="col-form-label"><?=_('Template')?></label>
+                                            <select class="form-control" name="pageTemplate" id="pageTemplate" required>
+                                                <?php
+                                                    $templates = glob($this->settings['THEMEDIR'].'/templates/*.php');
+                                                    foreach($templates as $template){
+                                                        $fileName = basename($template);
+                                                        ?>
+                                                        <option value="<?=$fileName?>"><?=$fileName?></option>
+                                                        <?php
+                                                    }
+                                                ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label for="pageStatus" class="col-form-label"><?=_('Status')?></label>
+                                            <select class="form-control" name="pageStatus" id="pageStatus" required>
+                                                <option value="1"><?=_('Active')?></option>
+                                                <option value="0"><?=_('Deactive')?></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label for="pageType" class="col-form-label"><?=_('Page Type')?></label>
+                                            <select class="form-control" name="pageType" id="pageType">
+                                                <option value="pages"><?=_('Pages')?></option>
+                                                <option value="ajax"><?=_('Ajax')?></option>
+                                                <option value="keybmin"><?=_('Keybmin')?></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label for="pageMenu" class="col-form-label"><?=_('Do you look in the menu?')?></label>
+                                            <select class="form-control" name="pageMenu" id="pageMenu">
+                                                <option value="1"><?=_('Yes')?></option>
+                                                <option value="0"><?=_('No')?></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="parentPageID" class="col-form-label"><?=_('Parent Page')?></label>
+                                    <select class="form-control parentPageID" name="parentPageID" id="parentPageID" required>
+                                        <option value="0" data-pageshortcode=""><?=_('No Parent Page')?></option>
+                                        <?php
+                                            $allPage = $this->getPageList();
+                                            foreach($allPage as $page){
+                                        ?>
+                                        <option value="<?=$page['id']?>" data-pageshortcode="<?=$page['shortcode']?>"><?=$page['title']?></option>
+                                        <?php
+                                            }
+                                        ?>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label for="pageDesc" class="col-form-label"><?=_('Page Description')?></label>
-                                <input id="pageDesc" name="pageDesc" type="text" class="form-control" required>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <label for="pageLink" class="col-form-label"><?=_('Page Link')?></label>
-                                        <input id="pageLink" name="pageLink" type="text" class="form-control pageLink" value="?page=" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <label for="pageShortcode" class="col-form-label"><?=_('Page Shortcode')?></label>
-                                        <input id="pageShortcode" name="pageShortcode" type="text" class="form-control pageShortcode" value="" readonly>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <label for="pageTemplate" class="col-form-label"><?=_('Template')?></label>
-                                        <select class="form-control" name="pageTemplate" id="pageTemplate" required>
-                                            <?php
-                                                $templates = glob($this->settings['THEMEDIR'].'/templates/*.php');
-                                                foreach($templates as $template){
-                                                    $fileName = basename($template);
-                                                    ?>
-                                                    <option value="<?=$fileName?>"><?=$fileName?></option>
-                                                    <?php
-                                                }
-                                            ?>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <label for="pageStatus" class="col-form-label"><?=_('Status')?></label>
-                                        <select class="form-control" name="pageStatus" id="pageStatus" required>
-                                            <option value="1"><?=_('Active')?></option>
-                                            <option value="0"><?=_('Deactive')?></option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <label for="pageType" class="col-form-label"><?=_('Page Type')?></label>
-                                        <select class="form-control" name="pageType" id="pageType">
-                                            <option value="pages"><?=_('Pages')?></option>
-                                            <option value="ajax"><?=_('Ajax')?></option>
-                                            <option value="keybmin"><?=_('Keybmin')?></option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <label for="pageMenu" class="col-form-label"><?=_('Do you look in the menu?')?></label>
-                                        <select class="form-control" name="pageMenu" id="pageMenu">
-                                            <option value="1"><?=_('Yes')?></option>
-                                            <option value="0"><?=_('No')?></option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="parentPageID" class="col-form-label"><?=_('Parent Page')?></label>
-                                <select class="form-control parentPageID" name="parentPageID" id="parentPageID" required>
-                                    <option value="0" data-pageshortcode=""><?=_('No Parent Page')?></option>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="pageAuth" class="col-form-label"><?=_('Choose Authorized?')?></label>
+                                    <select class="form-control multiSelectBox" name="pageAuth[]" id="pageAuth" required multiple>
                                     <?php
-                                        $allPage = $this->getPageList();
-                                        foreach($allPage as $page){
+                                        $allAuth = $this->getAuthList();
+                                        foreach($allAuth as $auth){
                                     ?>
-                                    <option value="<?=$page['id']?>" data-pageshortcode="<?=$page['shortcode']?>"><?=$page['title']?></option>
+                                        <option value="<?=$auth['id']?>" <?=$auth['id']==1?'selected disabled':''?>><?=$auth['authName']?></option>
                                     <?php
                                         }
                                     ?>
-                                </select>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 text-right">
+                                <button class="btn btn-primary"><?=_('Save')?></button>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="pageAuth" class="col-form-label"><?=_('Choose Authorized?')?></label>
-                                <select class="form-control multiSelectBox" name="pageAuth[]" id="pageAuth" required multiple>
-                                <?php
-                                    $allAuth = $this->getAuthList();
-                                    foreach($allAuth as $auth){
-                                ?>
-                                    <option value="<?=$auth['id']?>" <?=$auth['id']==1?'selected disabled':''?>><?=$auth['authName']?></option>
-                                <?php
-                                    }
-                                ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-12 text-right">
-                            <button class="btn btn-primary"><?=_('Save')?></button>
-                        </div>
-                    </div>
 
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
 
+        </div>
     </div>
 <?php
 	require $this->settings['THEMEDIR']."/footer.php";

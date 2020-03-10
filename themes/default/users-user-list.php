@@ -1,22 +1,22 @@
 <?php
 
-    if($this->getControl(['action','authID']) === true and $action == 'del' and is_numeric($authID)){
+    if($this->getControl(['action','userID']) === true and $action == 'del' and is_numeric($userID)){
 
-        $askPage = $mysqli->query("SELECT * FROM kb_auth WHERE id = '".$authID."'");
+        $askPage = $mysqli->query("SELECT * FROM kb_users WHERE id = '".$userID."'");
         if($askPage->num_rows > 0){
 
             $ai = $askPage->fetch_assoc();
 
-            $del = $mysqli->query("DELETE FROM kb_auth WHERE id = '".$authID."'");
+            $del = $mysqli->query("DELETE FROM kb_users WHERE id = '".$userID."'");
             if($del){
 	            $result = [
 		            'status' => 'success',
-		            'message' => $ai['authName']._(' auth delete'),
+		            'message' => $ai['fullName']._(' user delete'),
 	            ];
             }else{
 	            $result = [
 		            'status' => 'danger',
-		            'message' => $ai['authName']._(' not auth delete'),
+		            'message' => $ai['fullName']._(' not user delete'),
 	            ];
             }
 
@@ -57,24 +57,26 @@
                         <thead>
                             <tr>
                                 <th scope="col">#</th>
+                                <th scope="col">Fullname</th>
+                                <th scope="col">Mail</th>
+                                <th scope="col">Status</th>
                                 <th scope="col">Auth Name</th>
-                                <th scope="col">Auth Desc</th>
-                                <th scope="col">Sub Auth</th>
                                 <th scope="col">Events</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                                $allPages = $this->getAuthList();
-                                foreach($allPages as $p){
+                                $allUsers = $this->getUserList();
+                                foreach($allUsers as $user){
                             ?>
                             <tr>
-                                <th scope="row"><?=$p['id']?></th>
-                                <td><?=$p['authName']?></td>
-                                <td><?=$p['authDesc']?></td>
+                                <th scope="row"><?=$user['id']?></th>
+                                <td><?=$user['fullName']?></td>
+                                <td><?=$user['mail']?></td>
+                                <td><?=($user['status']==1?'<div class="text-success">'._('Active').'</div>':'<div class="text-danger">'._('Deactive').'</div>')?></td>
                                 <td>
                                     <?php
-                                        $subAuth = $keybmin::getAuthList($p['id']);
+                                        $subAuth = $keybmin::getAuthList($user['authID'],'id');
                                         if($subAuth == null){
                                             echo '<div class="text-danger">'._('No Sub Auth').'</div>';
                                         }else{
@@ -85,8 +87,8 @@
                                     ?>
                                 </td>
                                 <td>
-                                    <a href="?page=keybmin-auth-operations-auth-edit&authID=<?=$p['id']?>" class="btn btn-primary"><?=_('Edit')?></a>
-                                    <a href="?page=<?=$page?>&action=del&authID=<?=$p['id']?>" class="btn btn-danger del-btn"><?=_('Del')?></a>
+                                    <a href="?page=users-user-edit&userID=<?=$user['id']?>" class="btn btn-primary"><?=_('Edit')?></a>
+                                    <a href="?page=<?=$page?>&action=del&userID=<?=$user['id']?>" class="btn btn-danger del-btn"><?=_('Del')?></a>
                                 </td>
                             </tr>
                             <?php

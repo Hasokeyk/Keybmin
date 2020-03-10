@@ -5,32 +5,42 @@
         if($this->postControl(['authName','authDesc']) === true){
 
             $askAuth = $mysqli->query("SELECT * FROM kb_auth WHERE authName = '".$authName."'");
-            if($askAuth->num_rows == 0){
+            if($askAuth->num_rows > 0){
 
-                $addAuth = $mysqli->query("INSERT INTO kb_auth SET 
-                authName='".$authName."',
-                authDesc='".$authDesc."',
-                parentID='".($subAuth??'0')."'
-               ");
+                $addAuth = $mysqli->query("UPDATE kb_auth SET authName='".$authName."', authDesc='".$authDesc."', parentID='".($subAuth??'0')."' WHERE id = '".$authID."'");
                 if($addAuth){
 	                $result = [
 		                'status' => 'success',
-		                'message' => $authName._(' Auth Added'),
+		                'message' => $authName._(' Auth Updated'),
 	                ];
                 }else{
 	                $result = [
 		                'status' => 'danger',
-		                'message' => _('Auth Not Add'),
+		                'message' => _('Auth Not Updated'),
 	                ];
                 }
 
             }else{
                 $result = [
                     'status' => 'danger',
-                    'message' => _('This Auth is exists'),
+                    'message' => _('This Auth Not Found'),
                 ];
             }
 
+        }
+
+    }
+
+    if(isset($authID) and !empty($authID) and is_numeric($authID)){
+
+		$askAuth = $mysqli->query("SELECT * FROM kb_auth WHERE id = '".$authID."'");
+		if($askAuth->num_rows > 0){
+		    $authDetail = $askAuth->fetch_assoc();
+        }else{
+			$result = [
+				'status' => 'danger',
+				'message' => _('This page is not exists'),
+			];
         }
 
     }
@@ -71,11 +81,11 @@
 
                                 <div class="form-group">
                                     <label for="authName" class="col-form-label"><?=_('Auth Name')?></label>
-                                    <input id="authName" name="authName" type="text" class="form-control authName" required>
+                                    <input id="authName" name="authName" type="text" class="form-control authName" value="<?=$authDetail['authName']?>" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="authDesc" class="col-form-label"><?=_('Auth Description')?></label>
-                                    <input id="authDesc" name="authDesc" type="text" class="form-control" required>
+                                    <input id="authDesc" name="authDesc" type="text" class="form-control" value="<?=$authDetail['authDesc']?>" required>
                                 </div>
 
                                 <div class="form-group">
@@ -86,7 +96,7 @@
                                         $allAuth = $this->getAuthList();
                                         foreach($allAuth as $auth){
                                     ?>
-                                        <option value="<?=$auth['id']?>"><?=$auth['authName']?></option>
+                                        <option value="<?=$auth['id']?>" <?=($authDetail['parentID']==$auth['id']?'selected':'')?>><?=$auth['authName']?></option>
                                     <?php
                                         }
                                     ?>

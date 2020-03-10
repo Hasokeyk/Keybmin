@@ -2,17 +2,20 @@
 
     if(isset($post) and !empty($post)){
 
-        if($this->postControl(['authName','authDesc']) === true){
+        if($this->postControl(['userFullname','userMail','userPassword','userStatus','userAuth']) === true){
 
-            $askAuth = $mysqli->query("SELECT * FROM kb_auth WHERE authName = '".$authName."'");
-            if($askAuth->num_rows == 0){
+            $askUser = $mysqli->query("SELECT * FROM kb_users WHERE mail = '".$userMail."'");
+            if($askUser->num_rows == 0){
 
-                $addAuth = $mysqli->query("INSERT INTO kb_auth SET 
-                authName='".$authName."',
-                authDesc='".$authDesc."',
-                parentID='".($subAuth??'0')."'
+                $addUser = $mysqli->query("INSERT INTO kb_users SET 
+                fullName='".$userFullname."',
+                mail='".$userMail."',
+                password='".md5($userPassword)."',
+                status='".$userStatus."',
+                authID='".$userAuth."',
+                time='".time()."'
                ");
-                if($addAuth){
+                if($addUser){
 	                $result = [
 		                'status' => 'success',
 		                'message' => $authName._(' Auth Added'),
@@ -67,21 +70,36 @@
                         <input type="hidden" name="post" value="true">
 
                         <div class="row">
-                            <div class="col-12">
+                            <div class="col-6">
 
                                 <div class="form-group">
-                                    <label for="authName" class="col-form-label"><?=_('Auth Name')?></label>
-                                    <input id="authName" name="authName" type="text" class="form-control authName" required>
+                                    <label for="userFullname" class="col-form-label"><?=_('User Fullname')?></label>
+                                    <input id="userFullname" name="userFullname" type="text" class="form-control userFullname" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="authDesc" class="col-form-label"><?=_('Auth Description')?></label>
-                                    <input id="authDesc" name="authDesc" type="text" class="form-control" required>
+                                    <label for="userMail" class="col-form-label"><?=_('User Mail')?></label>
+                                    <input id="userMail" name="userMail" type="text" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userPassword" class="col-form-label"><?=_('User Password')?></label>
+                                    <input id="userPassword" name="userPassword" type="text" class="form-control" required>
+                                </div>
+
+                            </div>
+
+                            <div class="col-6">
+
+                                <div class="form-group">
+                                    <label for="userStatus" class="col-form-label"><?=_('User Status')?></label>
+                                    <select class="form-control" name="userStatus" id="userStatus" required>
+                                        <option value="1" selected>Active</option>
+                                        <option value="2">Deactive</option>
+                                    </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="subAuth" class="col-form-label"><?=_('Sub Auth')?></label>
-                                    <select class="form-control" name="subAuth" id="subAuth" required>
-                                        <option value="0">No Sub Auth</option>
+                                    <label for="userAuth" class="col-form-label"><?=_('User Auth')?></label>
+                                    <select class="form-control" name="userAuth" id="userAuth" required>
                                     <?php
                                         $allAuth = $this->getAuthList();
                                         foreach($allAuth as $auth){
@@ -92,7 +110,9 @@
                                     ?>
                                     </select>
                                 </div>
+
                             </div>
+
                             <div class="col-12 text-right">
                                 <button class="btn btn-primary"><?=_('Save')?></button>
                             </div>

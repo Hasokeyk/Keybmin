@@ -26,12 +26,8 @@
 	define('THEMEDIR',ROOT.'/themes/');
 	define('KEYB',ROOT.'/keyb/');
 	define('PAGES',ROOT.'/pages/');
+	define('UPLOADDIR',ROOT.'/uploads/');
+	define('LANGDIR',ROOT.'/langs/');
 	//GEREKLİ DEĞİŞKENLER
-
-	//putenv('LC_ALL='.$settings['lang']);
-	setlocale(LC_ALL, 'tr_TR');
-	bindtextdomain("*", ROOT."/langs");
-	//bind_textdomain_codeset( 'keybmin', 'UTF-8' );
-	textdomain("*");
 
 	require KEYB."vendor/autoload.php";

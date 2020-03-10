@@ -56,6 +56,12 @@
 			}
 			//GET SETTINGS
 
+			//THEME FUNCTİONS FİLE
+			if(file_exists($this->settings['THEMEDIR'].'functions.php')){
+				require $this->settings['THEMEDIR'].'functions.php';
+			}
+			//THEME FUNCTİONS FİLE
+
 			//USER LOGIN CHECK
 			$loginCheck = $this->loginCheck();
 			if($loginCheck){
@@ -179,10 +185,9 @@
 
 			if(isset($_SESSION[$this->sessionName]['session']) and !empty($_SESSION[$this->sessionName]['session'])){
 
-				$seldosIOI = $db->query("SELECT * FROM users WHERE session = '".$_SESSION[$this->sessionName]['session']."'");
 				$ask = $mysqli->query("SELECT * FROM kb_users WHERE session = '".$_SESSION[$this->sessionName]['session']."'");
 				if($ask->num_rows > 0){
-					$this->userInfo = array_merge($ask->fetch_assoc(),$seldosIOI[0]);
+					$this->userInfo = $ask->fetch_assoc();
 					return true;
 				}else{
 					session_destroy();
@@ -493,6 +498,9 @@
 				echo $menuHtml['ulBefore'];
 			}else{
 				$menu = end($sidebarMenuArray);
+				if($menu == false){
+					return;
+				}
 				printf($menuHtml['ulBefore'],'menu-'.$menu['parentID'],$m?'collapse show':'');
 			}
 			foreach($sidebarMenuArray as $id => $menu){
@@ -567,20 +575,6 @@
 			return $this->keys;
 		}
 
-		function getAuthList(){
-			global $mysqli;
-
-			$allAuth = [];
-			$askAuth = $mysqli->query("SELECT * FROM kb_auth");
-			if($askAuth->num_rows > 0){
-				while($auth = $askAuth->fetch_assoc()){
-					$allAuth[] = $auth;
-				}
-			}
-
-			return $allAuth;
-		}
-
 		function getPageList($filter = 'all',$filterType='type'){
 			global $mysqli;
 
@@ -605,6 +599,54 @@
 		}
 
 		function getPageListTree($array,$sub=0){
+
+
+
+		}
+
+		function getAuthList($sub='all',$name='parentID'){
+			global $mysqli;
+
+			$allAuth = [];
+
+			if($sub == 'all'){
+				$sql = "SELECT * FROM kb_auth";
+			}else{
+				$sql = "SELECT * FROM kb_auth WHERE ".$name." = '".$sub."'";
+			}
+
+			$askPage = $mysqli->query($sql);
+			if($askPage->num_rows > 0){
+				while($page = $askPage->fetch_assoc()){
+					$allAuth[] = $page;
+				}
+			}
+
+			return $allAuth;
+		}
+
+		function getUserList($sub='all'){
+			global $mysqli;
+
+			$allUsers = [];
+
+			if($sub == 'all'){
+				$sql = "SELECT * FROM kb_users";
+			}else{
+				$sql = "SELECT * FROM kb_users WHERE parentID = '".$sub."'";
+			}
+
+			$askUser = $mysqli->query($sql);
+			if($askUser->num_rows > 0){
+				while($user = $askUser->fetch_assoc()){
+					$allUsers[] = $user;
+				}
+			}
+
+			return $allUsers;
+		}
+
+		function getAuthListTree($array,$sub=0){
 
 
 
