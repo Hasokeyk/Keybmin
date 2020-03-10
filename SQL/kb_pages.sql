@@ -51,22 +51,29 @@ CREATE TABLE `kb_pages` (
 --
 
 INSERT INTO `kb_pages` (`id`, `title`, `description`, `link`, `template`, `shortcode`, `status`, `control`, `menu`, `type`, `iconClass`, `userAuth`, `time`, `parentID`, `orderBy`) VALUES
-(1, 'Login', 'Login Desc', '?page=login', 'login', 'login', 1, 0, 0, 'pages', 'fab fa-korvue', '[\"1\"]', 1528843544, 0, 0),
-(2, 'Ajax Login', 'Ajax Login Desc', '?page=ajax-login', 'ajax-login', 'ajax-login', 1, 0, 0, 'ajax', 'fab fa-korvue', '[\"1\"]', 1528843544, 0, 0),
-(3, 'Dashboard', 'Dashboard Desc', '?page=dashboard', 'dashboard', 'dashboard', 1, 1, 1, 'pages', 'fas fa-home', '[\"1\",\"2\",\"3\"]', 1528843544, 0, 0),
-(4, 'Logout', 'Logout Desc', '?page=logout', 'logout', 'logout', 1, 1, 1, 'pages', 'fab fa-korvue', '[\"1\",\"2\",\"3\"]', 1528843544, 0, 0),
-(5, 'Keybmin', 'Keybmin Desc', '?page=keybmin', 'keybmin', 'keybmin', 1, 1, 1, 'keybmin', 'fab fa-korvue', '[\"1\",\"2\",\"3\"]', 1528843544, 0, 0),
-(6, 'Page Operations', 'Page Operations Desc', '?page=keybmin-page-operations', 'keybmin-page-operations', 'keybmin-page-operations', 1, 1, 1, 'keybmin', 'fas fa-file-powerpoint', '[\"1\",\"2\",\"3\"]', 1528843544, 5, 0),
-(7, 'Add New Page', 'Add New Page Desc', '?page=keybmin-page-operations-add-new-page', 'keybmin-page-operations-add-new-page', 'keybmin-page-operations-add-new-page', 1, 1, 1, 'keybmin', 'fas fa-file-medical', '[\"1\",\"2\",\"3\"]', 1528843544, 6, 0),
-(8, 'Page Edit', 'Page Edit Desc', '?page=keybmin-page-operations-page-edit', 'keybmin-page-operations-page-edit', 'keybmin-page-operations-page-edit', 1, 1, 0, 'keybmin', 'fas fa-file-medical', '[\"1\",\"2\",\"3\"]', 1528843544, 6, 0),
-(9, 'Page List', 'Page List Desc', '?page=keybmin-page-operations-page-list', 'keybmin-page-operations-page-list', 'keybmin-page-operations-page-list', 1, 1, 1, 'keybmin', 'fab fa-korvue', '[\"1\",\"2\",\"3\"]', 1528843544, 6, 0),
-(10, 'Auth Operations', 'Auth Operations Desc', '?page=keybmin-auth-operations', 'keybmin-auth-operations', 'keybmin-auth-operations', 1, 1, 1, 'keybmin', 'fas fa-align-center', '[\"1\",\"2\",\"3\"]', 1528843544, 5, 0),
-(11, 'Add New Auth', 'Add New Auth Desc', '?page=keybmin-auth-operations-add-new-auth', 'keybmin-auth-operations-add-new-auth', 'keybmin-auth-operations-add-new-auth', 1, 1, 1, 'keybmin', 'fas fa-file-medical', '[\"1\",\"2\",\"3\"]', 1528843544, 10, 0),
-(12, 'Auth List', 'Auth List Desc', '?page=keybmin-auth-operations-auth-list', 'keybmin-auth-operations-auth-list', 'keybmin-auth-operations-auth-list', 1, 1, 1, 'keybmin', 'fas fa-list-ul', '[\"1\",\"2\",\"3\"]', 1528843544, 10, 0),
-(13, 'Banned', 'Banned Desc', '?page=banned', 'banned', 'banned', 1, 1, 0, 'pages', 'fab fa-korvue', '[\"1\",\"2\",\"3\"]', 1528843544, 0, 0),
-(14, '404', '404 Desc', '?page=404', '404', '404', 1, 0, 0, 'pages', 'fab fa-korvue', '[\"1\",\"2\",\"3\"]', 1528843544, 0, 0),
-(15, '500', '500 Desc', '?page=500', '500', '500', 1, 0, 0, 'pages', 'fab fa-korvue', '[\"1\",\"2\",\"3\"]', 1528843544, 0, 0);
-
+(NULL, 'Login', 'Login Desc', '?page=login', 'login', 'login', 1, 0, 2, 'pages', 'fab fa-korvue', '[\"1\"]', 1528843544, 0, 0),
+(NULL, 'Ajax Login', 'Ajax Login Desc', '?page=ajax-login', 'ajax-login', 'ajax-login', 1, 0, 2, 'ajax', 'fab fa-korvue', '[\"1\"]', 1528843544, 0, 0),
+(NULL, 'Dashboard', 'Dashboard Desc', '?page=dashboard', 'dashboard', 'dashboard', 1, 1, 1, 'pages', 'fas fa-home', '[\"1\",\"2\",\"3\"]', 1528843544, 0, 0),
+(NULL, 'Logout', 'Logout Desc', '?page=logout', 'logout', 'logout', 1, 1, 1, 'pages', 'fas fa-sign-out-alt', '[\"2\",\"3\",\"1\"]', 1583859680, 0, 9999998),
+(NULL, 'Banned', 'Banned Desc', '?page=banned', 'banned', 'banned', 1, 1, 2, 'pages', 'fas fa-ban', '[\"2\",\"3\",\"1\"]', 1583859798, 0, 0),
+(NULL, '404', '404 Desc', '?page=404', '404', '404', 1, 1, 2, 'pages', 'empty', '[\"2\",\"3\",\"1\"]', 1583859793, 0, 0),
+(NULL, '500', '500 Desc', '?page=500', '500', '500', 1, 0, 2, 'pages', 'fab fa-korvue', '[\"1\",\"2\",\"3\"]', 1528843544, 0, 0),
+(NULL, 'Keybmin', 'Keybmin Desc', '?page=keybmin', 'keybmin', 'keybmin', 1, 1, 1, 'keybmin', 'fab fa-korvue', '[1]', 1583855834, 0, 9999999),
+(NULL, 'Page Operations', 'Page Operations Desc', '?page=keybmin-page-operations', 'keybmin-page-operations', 'keybmin-page-operations', 1, 1, 1, 'keybmin', 'fas fa-file-powerpoint', '[1]', 1528843544, 8, 0),
+(NULL, 'Page List', 'Page List Desc', '?page=keybmin-page-operations-page-list', 'keybmin-page-operations-page-list', 'keybmin-page-operations-page-list', 1, 1, 1, 'keybmin', 'fab fa-korvue', '[1]', 1528843544, 9, 0),
+(NULL, 'Page Edit', 'Page Edit Desc', '?page=keybmin-page-operations-page-edit', 'keybmin-page-operations-page-edit', 'keybmin-page-operations-page-edit', 1, 1, 2, 'keybmin', 'fas fa-file-medical', '[\"1\",\"2\",\"3\"]', 1528843544, 9, 0),
+(NULL, 'Add New Page', 'Add New Page Desc', '?page=keybmin-page-operations-add-new-page', 'keybmin-page-operations-add-new-page', 'keybmin-page-operations-add-new-page', 1, 1, 1, 'keybmin', 'fas fa-file-medical', '[1]', 1528843544, 9, 0),
+(NULL, 'Auth Operations', 'Auth Operations Desc', '?page=keybmin-auth-operations', 'keybmin-auth-operations', 'keybmin-auth-operations', 1, 1, 1, 'keybmin', 'fas fa-align-center', '[1]', 1528843544, 8, 0),
+(NULL, 'Auth List', 'Auth List Desc', '?page=keybmin-auth-operations-auth-list', 'keybmin-auth-operations-auth-list', 'keybmin-auth-operations-auth-list', 1, 1, 1, 'keybmin', 'fas fa-list-ul', '[1]', 1528843544, 13, 0),
+(NULL, 'Auth Edit', 'Auth Edit Desc', '?page=keybmin-auth-operations-auth-edit', 'keybmin-auth-operations-auth-edit', 'keybmin-auth-operations-auth-edit', 1, 1, 2, 'keybmin', 'fas fa-file-medical', '[\"1\",\"2\",\"3\"]', 1528843544, 13, 0),
+(NULL, 'Add New Auth', 'Add New Auth Desc', '?page=keybmin-auth-operations-add-new-auth', 'keybmin-auth-operations-add-new-auth', 'keybmin-auth-operations-add-new-auth', 1, 1, 1, 'keybmin', 'fas fa-file-medical', '[1]', 1528843544, 13, 0),
+(NULL, 'Users', 'Users Desc', '?page=users', 'users', 'users', 1, 1, 1, 'pages', 'fas fa-users', '[\"2\",\"1\"]', 1583855761, 0, 0),
+(NULL, 'User List', 'User List Desc', '?page=users-user-list', 'users-user-list', 'users-user-list', 1, 1, 1, 'pages', 'fas fa-list', '[\"2\",\"1\"]', 1583859720, 17, 0),
+(NULL, 'User Edit', 'User Edit', '?page=users-user-edit', 'users-user-edit', 'users-user-edit', 1, 1, 2, 'pages', 'fab fa-korvue', '[\"2\",\"1\"]', 1583857069, 17, 0),
+(NULL, 'Add New User', 'Add New User Desc', '?page=users-add-new-user', 'users-add-new-user', 'users-add-new-user', 1, 1, 1, 'pages', 'fas fa-user-plus', '[\"2\",\"1\"]', 1583859731, 17, 0),
+(NULL, 'Settings', 'Settings Desc', '?page=settings', 'settings', 'settings', 1, 1, 1, 'pages', 'fas fa-cogs', '[\"2\",\"3\",\"1\"]', 1583859834, 0, 0),
+(NULL, 'Panel Settings', 'Panel Settings', '?page=settings-panel-settings', 'settings-panel-settings', 'settings-panel-settings', 1, 1, 1, 'pages', 'fas fa-cog', '[\"2\",\"3\",\"1\"]', 1583859828, 20, 0),
+(NULL, 'My profile', 'My profile', '?page=settings-my-profile', 'settings-my-profile', 'settings-my-profile', 1, 1, 1, 'pages', 'fas fa-user-circle', '[\"2\",\"3\",\"1\"]', 1583859816, 20, 0)
 --
 -- Indexes for dumped tables
 --
