@@ -44,10 +44,10 @@
 				}
 
 				$this->settings = array_merge([
-					'SITEURL' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/',
-					'THEMEPATH' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/themes/'.$this->settings['theme'].'/',
+					'SITEURL' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/'.$this->settings['siteUrl'],
+					'THEMEPATH' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$this->settings['siteUrl'].'/themes/'.$this->settings['theme'].'/',
 					'THEMEDIR' => THEMEDIR.'/'.$this->settings['theme'].'/',
-					'KEYBPATH' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/keyb/',
+					'KEYBPATH' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$this->settings['siteUrl'].'/keyb/',
 				],$this->settings);
 
 			}else{

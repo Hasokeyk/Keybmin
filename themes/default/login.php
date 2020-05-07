@@ -83,7 +83,7 @@
 					<input class="form-control form-control-lg" name="mail" id="email" type="text" placeholder="<?=_("E-mail")?>" autocomplete="off" required>
 				</div>
 				<div class="form-group">
-					<input class="form-control form-control-lg" name="password" minlength="7" maxlength="100" id="password" type="password" placeholder="<?=_("Password")?>" required>
+					<input class="form-control form-control-lg" name="password" minlength="5" maxlength="100" id="password" type="password" placeholder="<?=_("Password")?>" required>
 				</div>
 				<div class="form-group">
 					<label class="custom-control custom-checkbox">

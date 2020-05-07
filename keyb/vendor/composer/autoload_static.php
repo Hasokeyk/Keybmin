@@ -9,6 +9,7 @@ class ComposerStaticInit32c49e31ba86478f0e89c4874dec6f57
     public static $files = array (
         '547f39254e5312c66b30c9b6a7d3570f' => __DIR__ . '/..' . '/eleirbag89/telegrambotphp/Telegram.php',
         '221a7c0887f892e44dd08191321d3815' => __DIR__ . '/..' . '/eleirbag89/telegrambotphp/TelegramErrorLogger.php',
+        '11477c98783767de923f4b4ab391ad1f' => __DIR__ . '/..' . '/hasokeyk/array-2-html-form/src/a2hf.php',
     );
 
     public static $prefixLengthsPsr4 = array (

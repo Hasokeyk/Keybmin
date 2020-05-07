@@ -52,6 +52,10 @@ class Telegram
      */
     const ANIMATION = 'animation';
     /**
+     * Constant for type sticker.
+     */
+    const STICKER = 'sticker';	
+    /**
      * Constant for type Document.
      */
     const DOCUMENT = 'document';
@@ -1767,7 +1771,11 @@ class Telegram
 
     public function Caption()
     {
-        return @$this->data['message']['caption'];
+	$type = $this->getUpdateType(); 
+	if ($type == self::CHANNEL_POST) { 
+		return @$this->data['channel_post']['caption']; 
+	} 
+	return @$this->data['message']['caption']; 
     }
 
     /// Get the chat_id of the current message
@@ -3067,7 +3075,7 @@ class Telegram
         $content = ['offset' => $offset, 'limit' => $limit, 'timeout' => $timeout];
         $this->updates = $this->endpoint('getUpdates', $content);
         if ($update) {
-            if (count($this->updates['result']) >= 1) { //for CLI working.
+            if (is_array($this->updates['result']) && count($this->updates['result']) >= 1) { //for CLI working.
                 $last_element_id = $this->updates['result'][count($this->updates['result']) - 1]['update_id'] + 1;
                 $content = ['offset' => $last_element_id, 'limit' => '1', 'timeout' => $timeout];
                 $this->endpoint('getUpdates', $content);
@@ -3133,6 +3141,9 @@ class Telegram
         if (isset($update['message']['animation'])) {
             return self::ANIMATION;
         }
+	if (isset($update['message']['sticker'])) {
+            return self::STICKER;
+        }	    
         if (isset($update['message']['document'])) {
             return self::DOCUMENT;
         }
@@ -3183,7 +3194,6 @@ class Telegram
         if ($result === false) {
             $result = json_encode(['ok'=>false, 'curl_error_code' => curl_errno($ch), 'curl_error' => curl_error($ch)]);
         }
-        echo $result;
         curl_close($ch);
         if ($this->log_errors) {
             if (class_exists('TelegramErrorLogger')) {

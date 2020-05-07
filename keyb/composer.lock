@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cba71e37c70dd727544f79652c3bbd1f",
+    "content-hash": "326219b16942308e0c54f005be8e3aea",
     "packages": [
         {
             "name": "eleirbag89/telegrambotphp",
-            "version": "1.3.9",
+            "version": "1.3.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Eleirbag89/TelegramBotPHP.git",
-                "reference": "19ee63772ff3e13c57142b04a5e71e8bf34236bc"
+                "reference": "aa9ba838a51e34db41f0a827e9ec4b20023ffa48"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Eleirbag89/TelegramBotPHP/zipball/19ee63772ff3e13c57142b04a5e71e8bf34236bc",
-                "reference": "19ee63772ff3e13c57142b04a5e71e8bf34236bc",
+                "url": "https://api.github.com/repos/Eleirbag89/TelegramBotPHP/zipball/aa9ba838a51e34db41f0a827e9ec4b20023ffa48",
+                "reference": "aa9ba838a51e34db41f0a827e9ec4b20023ffa48",
                 "shasum": ""
             },
             "require": {
@@ -41,7 +41,52 @@
                 }
             ],
             "description": "A very simple PHP Telegram Bot API",
-            "time": "2019-04-29T06:41:12+00:00"
+            "time": "2019-10-14T13:57:20+00:00"
+        },
+        {
+            "name": "hasokeyk/array-2-html-form",
+            "version": "1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Hasokeyk/array-2-html-form.git",
+                "reference": "699706e84ede5f7145ab75f5d5d6b4f5b8bcbbbd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Hasokeyk/array-2-html-form/zipball/699706e84ede5f7145ab75f5d5d6b4f5b8bcbbbd",
+                "reference": "699706e84ede5f7145ab75f5d5d6b4f5b8bcbbbd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/a2hf.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hasan Yüksektepe",
+                    "email": "hasanhasokeyk@hotmail.com",
+                    "homepage": "https://hayatikodla.net",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Automatically converts php array type to html form elements",
+            "homepage": "https://hayatikodla.net",
+            "keywords": [
+                "Html Form",
+                "html",
+                "php",
+                "php array"
+            ],
+            "time": "2020-05-03T21:56:22+00:00"
         },
         {
             "name": "matthiasmullie/minify",
@@ -200,6 +245,9 @@
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": []
+    "platform": {
+        "ext-gettext": "*"
+    },
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
