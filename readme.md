@@ -35,3 +35,9 @@ test | Bu ayar ile css ve js leriniz sıkışmaz yani geliştirme modunu açıp 
 lang  | Henüz yapım aşamasında | tr_TR
 page | Kullanıcı girişinden sonra açılacak ilk sayfa | sayfanızın adı ÖRN: dashboard
 
+## Admin Kullanıcı Bilgileri
+
+
+Kullanıcı adı | admin@admin.com
+--- | ---
+Şifre | admin
