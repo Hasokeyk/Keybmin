@@ -1,128 +1,328 @@
 <?php
 
-	namespace Keybmin;
-
-	use MatthiasMullie\Minify;
+	namespace keybmin;
 
 	class keybmin{
 
-		private $sessionName;
-		public  $page       = 'login';
-		public  $pageFile   = null;
-		public  $pageInfo   = null;
-		private $userInfo   = null;
-		private $settings   = [];
-		private $pageTitle  = 'Not Found Title';
-		private $pageDesc   = 'Not Found Desc';
-		private $test       = false;
-		private $keys = [];
+		public $db_local     = 'localhost';
+		public $db_name      = '';
+		public $db_user      = '';
+		public $db_pass      = '';
+		public $db           = null;
+		public $test         = false;
+		public $session_name = false;
+		public $settings     = [];
+		public $page         = 'home';
+		public $page_info    = [];
+		public $page_file    = null;
+		public $user_info;
+		public $page_title;
+		public $page_desc;
 
-		function __construct($sessionName,$settings = []){
-			global $mysqli,$db,$keybmin;
+		function __construct($session_name, $settings = []){
 
-			$keybmin = $this;
+			global $keybmin;
 
-			//putenv('LC_ALL='.$settings['lang']);
-			setlocale(LC_ALL, $settings['lang']);
-			bindtextdomain("*", ROOT."/langs");
-			//bind_textdomain_codeset( 'keybmin', 'UTF-8' );
-			textdomain("*");
+			if(isset($settings['db_type']) and $settings['db_type'] == 'mysqli'){
+				$this->db = $this->mysqli_connect_db($settings['db_local']??null, $settings['db_name']??null, $settings['db_user']??null, $settings['db_pass']??null);
+			}
+			else{
+				echo _('Desteklenmeyen Veritabanı Türü');
+			}
 
-			$this->sessionName  = $sessionName;
-			$this->test         = $settings['test'];
+			$this->page         = $settings['page']??$this->page;
+			$this->session_name = $session_name;
+			$this->test         = $settings['test']??false;
 
-			$get = $this->getSecurity();
+			//SECURITY
+			$get = $this->get_security();
 			extract($get);
-			$post = $this->postSecurity();
+			$post = $this->post_security();
 			extract($post);
+			//SECURITY
 
 			//GET SETTINGS
-			$ask = $mysqli->query("SELECT * FROM kb_settings");
-			if($ask->num_rows > 0){
+			$ask = $this->db->query("SELECT * FROM kb_settings");
+			if($ask->num_rows>0){
 				while($setting = $ask->fetch_assoc()){
 					$this->settings[$setting['var']] = $setting['val'];
 				}
 
-				$this->settings = array_merge([
-					'SITEURL' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/'.$this->settings['siteUrl'],
-					'THEMEPATH' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$this->settings['siteUrl'].'/themes/'.$this->settings['theme'].'/',
-					'THEMEDIR' => THEMEDIR.'/'.$this->settings['theme'].'/',
-					'KEYBPATH' => $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$this->settings['siteUrl'].'/keyb/',
-				],$this->settings);
+				$site_url = '//'.$_SERVER['HTTP_HOST'].str_replace('?'.$_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']);
 
-			}else{
+				$this->settings = array_merge([
+				 'SITEURL'   => $site_url,
+				 'THEMEPATH' => $site_url.'themes/'.$this->settings['theme'].'/',
+				 'KEYBPATH'  => $site_url.'keyb/',
+				 'THEMEDIR'  => THEMEDIR.$this->settings['theme'].'/',
+				], $this->settings);
+
+			}
+			else{
 				$this->page = '500';
-				goto goPage;
 			}
 			//GET SETTINGS
 
-			//THEME FUNCTİONS FİLE
-			if(file_exists($this->settings['THEMEDIR'].'functions.php')){
-				require $this->settings['THEMEDIR'].'functions.php';
+			//THEME FUNCTIONS FILE
+			if(file_exists(THEMEDIR.'functions.php')){
+				require THEMEDIR.'functions.php';
 			}
-			//THEME FUNCTİONS FİLE
+			//THEME FUNCTIONS FILE
 
 			//USER LOGIN CHECK
-			$loginCheck = $this->loginCheck();
+			$loginCheck = $this->login_check();
 			if($loginCheck){
-				$this->page = $_GET['page']??'dashboard';
-			}else{
-				$this->page = $_GET['page']??'login';
-				goto goPage;
+				$this->page = $_GET['page']??$this->page;
+			}
+			else{
+				$this->page = $_GET['page']??$this->page;
 			}
 			//USER LOGIN CHECK
 
 			//PAGE EXITS
+			$keybmin = $this;
 			if(is_dir(THEMEDIR.$this->settings['theme'])){
-				goPage:
-				$this->pageCheck($this->page);
-				require $this->pageFile.'.php';
-			}else{
+				$this->page_check($this->page);
+				require $this->page_file.'.php';
+			}
+			else{
 				exit(THEMEDIR.$this->settings['theme'].' Theme Not Found');
 			}
 			//PAGE EXITS
 		}
 
-		function userLogin($mail,$password){
-			global $mysqli;
+		function login_check(){
 
-			if(isset($mail,$password)){
+			if(isset($_SESSION[$this->session_name]['session']) and !empty($_SESSION[$this->session_name]['session'])){
 
-				$ask = $mysqli->query("SELECT * FROM kb_users WHERE mail = '".$mail."' AND password='".md5($password)."'");
-				if($ask->num_rows > 0){
+				$ask = $this->db->query("SELECT * FROM kb_users WHERE session = '".$_SESSION[$this->session_name]['session']."'");
+				if($ask->num_rows>0){
+					$this->user_info = $ask->fetch_assoc();
+					return true;
+				}
+				else{
+					//session_destroy();
+					return false;
+				}
+
+			}
+			else{
+				return false;
+			}
+
+		}
+
+		function page_check($page){
+
+			$page_info = $this->page_info($page);
+			if($page_info !== false){
+
+				$this->page_title = $page_info['title'];
+				$this->page_desc  = $page_info['description'];
+
+				if(file_exists(THEMEDIR.$this->settings['theme'].'/ajax/'.$page_info['template'].'.php') and $page_info['type'] == 'ajax'){
+					header('Content-Type: application/json');
+					$page_file = THEMEDIR.$this->settings['theme'].'/ajax/'.$page_info['template'];
+				}
+				else if(file_exists(KEYBDIR.'/keybmin_pages/'.$page_info['template'].'.php') and $page_info['type'] == 'keybmin'){
+					$page_file = KEYBDIR.'/keybmin_pages/'.$page_info['template'];
+				}
+				else if(file_exists(THEMEDIR.$this->settings['theme'].'/'.$page_info['template'].'.php')){
+					$page_file = THEMEDIR.$this->settings['theme'].'/'.$page_info['template'];
+				}
+				else if(file_exists(THEMEDIR.$this->settings['theme'].'/pages/'.$page_info['template'].'.php')){
+					$page_file = THEMEDIR.$this->settings['theme'].'/pages/'.$page_info['template'];
+				}
+				else{
+					header("HTTP/1.0 404 Not Found");
+					$page_file = THEMEDIR.$this->settings['theme'].'/'.'404';
+				}
+
+				if($page_info['login_control'] == 1){
+
+					if($this->login_check()){
+						if(!$this->user_auth_check($this->page, 'template')){
+							$this->page = 'banned';
+							$page_info  = $this->page_info($this->page);
+							var_dump($page_info);
+							$page_file = THEMEDIR.$this->settings['theme'].'/'.$this->page;
+
+							$this->page_title = $page_info['title'];
+							$this->page_desc  = $page_info['description'];
+						}
+					}
+					else{
+						$page_file = THEMEDIR.$this->settings['theme'].'/'.'login';
+					}
+
+				}
+
+				$this->page_file = $page_file;
+				return true;
+			}
+
+			$this->page_file = THEMEDIR.$this->settings['theme'].'/'.'404';
+			return false;
+		}
+
+		function page_info($page){
+
+			$ask = $this->db->query("SELECT * FROM kb_pages WHERE link = '?page=".$page."'");
+			if($ask->num_rows>0){
+				return $this->page_info = $ask->fetch_assoc();
+			}
+
+			return false;
+		}
+
+		function user_auth_check($page, $type = 'shortcode'){
+
+			if($this->login_check()){
+				$ask = $this->db->query("SELECT * FROM kb_pages WHERE ".$type." = '".$page."'");
+				if($ask->num_rows>0){
+					$page_info = $ask->fetch_assoc();
+					if($page_info['login_control'] == '1'){
+						$pageAuth = json_decode($page_info['user_auth']);
+
+						foreach($pageAuth as $id => $auth_id){
+							if($auth_id == $this->user_info['auth_id']){
+								return true;
+							}
+						}
+					}
+					else{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		private function mysqli_connect_db($db_local = null, $db_name = null, $db_user = null, $db_pass = null){
+
+			try{
+				$db = new \mysqli($db_local??$this->db_local, $db_user??$this->db_user, ($db_pass??$this->db_pass)??'', $db_name??$this->db_name);
+				if($db->connect_error){
+					echo _('Veritabanı Hatası');
+					exit();
+				}
+
+				$db->set_charset('utf-8');
+
+				return $db;
+			}
+			catch(\mysqli_sql_exception $err){
+				echo $err->getMessage();
+			}
+
+		}
+
+		function get_security(){
+
+			$value = [];
+			foreach($_GET as $p => $d){
+				if(is_string($_GET[$p]) === true){
+					$value[$p] = trim(strip_tags($this->db->escape_string($d)));
+				}
+			}
+			return $value;
+		}
+
+		function post_security(){
+
+			$value = [];
+			foreach($_POST as $p => $d){
+				if(is_string($_POST[$p]) === true){
+					$value[$p] = trim(strip_tags($this->db->escape_string($d)));
+				}
+			}
+			return $value;
+		}
+
+		function get_control($get){
+
+			$control = 0;
+			foreach($get as $parametre){
+				if(isset($_GET[$parametre]) and !empty($_GET[$parametre])){
+					$control++;
+				}
+				else{
+					return false;
+					break;
+				}
+			}
+
+			if(count($get) == $control){
+				return true;
+			}
+			else{
+				return false;
+			}
+
+		}
+
+		function post_control($post = null){
+
+			$control = 0;
+			if($post != null){
+				foreach($post as $parametre){
+					if(isset($_POST[$parametre]) and !empty($_POST[$parametre])){
+						$control++;
+					}
+					else{
+						return $parametre;
+					}
+				}
+
+				if(count($post) == $control){
+					return true;
+				}
+			}
+			return false;
+		}
+
+		function user_login($mail, $password){
+
+			if(isset($mail, $password)){
+
+				$ask = $this->db->query("SELECT * FROM kb_users WHERE mail = '".$mail."' AND password='".md5($password)."'");
+				if($ask->num_rows>0){
 					$info = $ask->fetch_assoc();
 
 					$session = md5(time());
-					$data = [
-						'ID' => $info['id'],
-						'fullName' => $info['fullName'],
-						'mail' => $info['mail'],
-						'loginTime' => time(),
-						'session' => $session,
-						'authID' => $info['authID']
+					$data    = [
+					 'ID'         => $info['id'],
+					 'full_name'  => $info['full_name'],
+					 'mail'       => $info['mail'],
+					 'login_time' => time(),
+					 'session'    => $session,
+					 'auth_id'    => $info['auth_id'],
 					];
 
-					setcookie($this->sessionName,json_encode($data));
-					$_SESSION[$this->sessionName] = $data;
+					setcookie($this->session_name, json_encode($data));
+					$_SESSION[$this->session_name] = $data;
 
-					$mysqli->query("UPDATE kb_users SET session='".$session."' WHERE id = '".$info['id']."'");
+					$this->db->query("UPDATE kb_users SET session='".$session."' WHERE id = '".$info['id']."'");
 
 					$results = [
-						'status' => 'success',
-						'message' => _('Login Success. Wait...'),
+					 'status'  => 'success',
+					 'message' => _('Login Success. Wait...'),
 					];
 
-				}else{
+				}
+				else{
 					$results = [
-						'status' => 'danger',
-						'message' => _('User Not Found'),
+					 'status'  => 'danger',
+					 'message' => _('User Not Found'),
 					];
 				}
 
-			}else{
+			}
+			else{
 				$results = [
-					'status' => 'danger',
-					'message' => _('Parameters Not Found'),
+				 'status'  => 'danger',
+				 'message' => _('Parameters Not Found'),
 				];
 			}
 
@@ -130,49 +330,52 @@
 
 		}
 
-		function userRegister($fullname,$mail,$password,$confirmPassword){
-			global $mysqli;
+		function user_register($fullname, $mail, $password, $confirmPassword){
 
-			if(isset($fullname,$mail,$password,$confirmPassword)){
+			if(isset($fullname, $mail, $password, $confirmPassword)){
 
-				$ask = $mysqli->query("SELECT * FROM kb_users WHERE mail = '".$mail."'");
+				$ask = $this->db->query("SELECT * FROM kb_users WHERE mail = '".$mail."'");
 				if($ask->num_rows == 0){
 
 					if($password == $confirmPassword){
-						$register = $mysqli->query("INSERT INTO kb_users SET fullName = '".$fullname."',mail='".$mail."',password='".md5($password)."',authID='3',time='".time()."'");
+						$register = $this->db->query("INSERT INTO kb_users SET fullName = '".$fullname."',mail='".$mail."',password='".md5($password)."',auth_id='3',time='".time()."'");
 						if($register){
 
 							$this->userLogin($mail, $password);
 
 							$results = [
-								'status' => 'success',
-								'message' => _('Register Success. Auto Login. Wait... '),
+							 'status'  => 'success',
+							 'message' => _('Register Success. Auto Login. Wait... '),
 							];
 
-						}else{
+						}
+						else{
 							$results = [
-								'status' => 'danger',
-								'message' => _('Register problem'),
+							 'status'  => 'danger',
+							 'message' => _('Register problem'),
 							];
 						}
-					}else{
+					}
+					else{
 						$results = [
-							'status' => 'danger',
-							'message' => _('Password Not Match'),
+						 'status'  => 'danger',
+						 'message' => _('Password Not Match'),
 						];
 					}
 
-				}else{
+				}
+				else{
 					$results = [
-						'status' => 'danger',
-						'message' => _('User Exists'),
+					 'status'  => 'danger',
+					 'message' => _('User Exists'),
 					];
 				}
 
-			}else{
+			}
+			else{
 				$results = [
-					'status' => 'danger',
-					'message' => _('Parameters Not Found'),
+				 'status'  => 'danger',
+				 'message' => _('Parameters Not Found'),
 				];
 			}
 
@@ -180,209 +383,15 @@
 
 		}
 
-		function loginCheck(){
-			global $mysqli,$db;
-
-			if(isset($_SESSION[$this->sessionName]['session']) and !empty($_SESSION[$this->sessionName]['session'])){
-
-				$ask = $mysqli->query("SELECT * FROM kb_users WHERE session = '".$_SESSION[$this->sessionName]['session']."'");
-				if($ask->num_rows > 0){
-					$this->userInfo = $ask->fetch_assoc();
-					return true;
-				}else{
-					session_destroy();
-					return false;
-				}
-
-			}else{
-				return false;
-			}
-
-		}
-
-		function pageCheck($page){
-			global $mysqli;
-
-			$pageInfo = $this->pageInfo($page);
-			if($pageInfo !== false){
-
-				$this->pageTitle = $pageInfo['title'];
-				$this->pageDesc  = $pageInfo['description'];
-
-				if(file_exists(THEMEDIR.$this->settings['theme'].'/ajax/'.$pageInfo['template'].'.php') and $pageInfo['type']=='ajax'){
-					$pageFile = THEMEDIR.$this->settings['theme'].'/ajax/'.$pageInfo['template'];
-				}else if(file_exists(KEYB.'/pages/'.$pageInfo['template'].'.php') and $pageInfo['type']=='keybmin'){
-					$pageFile = KEYB.'/pages/'.$pageInfo['template'];
-				}else if(file_exists(THEMEDIR.$this->settings['theme'].'/'.$pageInfo['template'].'.php')){
-					$pageFile = THEMEDIR.$this->settings['theme'].'/'.$pageInfo['template'];
-				}else if(file_exists(THEMEDIR.$this->settings['theme'].'/pages/'.$pageInfo['template'].'.php')){
-					$pageFile = THEMEDIR.$this->settings['theme'].'/pages/'.$pageInfo['template'];
-				}else{
-					header("HTTP/1.0 404 Not Found");
-					$pageFile = THEMEDIR.$this->settings['theme'].'/'.'404';
-					goto page404;
-				}
-
-				if($pageInfo['control'] == 1){
-
-					if($this->loginCheck()){
-						if(!$this->userAuthCheck($this->page,'template')){
-							$this->page = 'banned';
-							$pageInfo = $this->pageInfo($this->page);
-							$pageFile = THEMEDIR.$this->settings['theme'].'/'.$this->page;
-
-							$this->pageTitle = $pageInfo['title'];
-							$this->pageDesc  = $pageInfo['description'];
-							goto page404;
-						}
-					}else{
-						$pageFile = THEMEDIR.$this->settings['theme'].'/'.'login';
-						goto page404;
-					}
-
-				}
-
-				page404:
-				$this->pageFile = $pageFile;
-				return true;
-			}
-
-			$this->pageFile = THEMEDIR.$this->settings['theme'].'/'.'404';
-			return false;
-		}
-
-		function pageInfo($page){
-			global $mysqli;
-
-			$ask = $mysqli->query("SELECT * FROM kb_pages WHERE link = '?page=".$page."'");
-			if($ask->num_rows > 0){
-				$pageInfo = $ask->fetch_assoc();
-				$this->pageInfo = $pageInfo;
-				return $pageInfo;
-			}
-
-			return false;
-		}
-
-		function userAuthCheck($page,$type = 'shortcode'){
-			global $mysqli;
-
-			if($this->loginCheck()){
-				$ask = $mysqli->query("SELECT * FROM kb_pages WHERE ".$type." = '".$page."'");
-				if($ask->num_rows > 0){
-					$pageInfo = $ask->fetch_assoc();
-
-					if($pageInfo['control'] == '1'){
-						$pageAuth = json_decode($pageInfo['userAuth']);
-
-						foreach($pageAuth as $id => $authID){
-							if($authID == $this->userInfo['authID']){
-								return true;
-								break;
-							}
-						}
-					}else{
-						return true;
-					}
-
-				}
-			}
-
-			return false;
-		}
-
-		function pageTitle(){
-			echo $this->pageTitle;
-		}
-
-		function pageDesc(){
-			echo $this->pageDesc;
-		}
-
-		function getSecurity(){
-			global $mysqli;
-			$degerler = array();
-			foreach($_GET as $p => $d){
-				if(is_string($_GET[$p]) === true){
-					$degerler[$p] = trim(strip_tags($mysqli->escape_string($d)));
-				}
-			}
-			return $degerler;
-		}
-
-		function postSecurity(){
-			global $mysqli;
-			$degerler = array();
-			foreach($_POST as $p => $d){
-				if(is_string($_POST[$p]) === true){
-					$degerler[$p] = trim(strip_tags($mysqli->escape_string($d)));
-				}
-			}
-			return $degerler;
-		}
-
-		function getControl($get){
-
-			$kontrol = 0;
-			foreach($get as $parametre){
-				if(isset($_GET[$parametre]) and !empty($_GET[$parametre])){
-					$kontrol ++;
-				}else{
-					return false;
-					break;
-				}
-			}
-
-			if(count($get)==$kontrol){
-				return true;
-			}else{
-				return false;
-			}
-
-		}
-
-		function postControl($post){
-
-			$kontrol = 0;
-			foreach($post as $parametre){
-				if(isset($_POST[$parametre]) and !empty($_POST[$parametre])){
-					$kontrol++;
-				}else{
-					return $parametre;
-					break;
-				}
-			}
-
-			if(count($post)==$kontrol){
-				return true;
-			}else{
-				return false;
-			}
-
-		}
-
-		function startsWith($haystack, $needle){
-			$length = strlen($needle);
-			return (substr($haystack, 0, $length) === $needle);
-		}
-
-		function endsWith($haystack, $needle){
-			$length = strlen($needle);
-			if ($length == 0) {
-				return true;
-			}
-
-			return (substr($haystack, -$length) === $needle);
-		}
-
-		function preload($csses,$jses,$fileName='non'){
+		function preload($csses, $jses, $fileName = 'non'){
 
 			if($csses != null){
 				if($this->test == true){
 					foreach($csses as $c){
 						echo '<link rel="preload" href="'.$c.'" as="style">'."\n";
 					}
-				}else{
+				}
+				else{
 					echo '<link rel="preload" href="'.($this->settings['THEMEPATH'].'cache/'.$fileName.'.css').'" as="style">'."\n";
 				}
 			}
@@ -392,14 +401,15 @@
 					foreach($jses as $j){
 						echo '<link rel="preload" href="'.$j.'" as="script">'."\n";
 					}
-				}else{
+				}
+				else{
 					echo '<link rel="preload" href="'.($this->settings['THEMEPATH'].'cache/'.$fileName.'.js').'" as="script">'."\n";
 				}
 			}
 
 		}
 
-		function cssMinify($csses = null,$fileName='non'){
+		function css_minify($csses = null, $fileName = 'non'){
 
 			if($csses != null){
 				if($this->test == false){
@@ -413,7 +423,8 @@
 					}
 
 					echo '<link href="'.($this->settings['THEMEPATH'].'cache/'.$fileName.'.css').'" rel="stylesheet" type="text/css"/>'."\n";
-				}else{
+				}
+				else{
 					$css = '';
 					foreach($csses as $c){
 						$css .= '<link href="'.$c.'" rel="stylesheet" type="text/css"/>'."\n";
@@ -421,12 +432,13 @@
 					echo $css;
 				}
 
-			}else{
+			}
+			else{
 				return false;
 			}
 		}
 
-		function jsMinify($jses = null,$fileName='non'){
+		function js_minify($jses = null, $fileName = 'non'){
 
 			if($jses != null){
 				if($this->test == false){
@@ -435,7 +447,7 @@
 						$minifier = new Minify\JS();
 						foreach($jses as $j){
 
-							if($this->startsWith($j,'http')){
+							if($this->startsWith($j, 'http')){
 								$j = file_get_contents($j);
 							}
 
@@ -445,30 +457,32 @@
 					}
 
 					echo '<script src="'.($this->settings['THEMEPATH'].'cache/'.$fileName.'.js').'" type="text/javascript"/></script>'."\n";
-				}else{
+				}
+				else{
 					$js = '';
 					foreach($jses as $j){
-						$js .= '<script src="'.str_replace($this->settings['THEMEDIR'],$this->settings['THEMEPATH'],$j).'" type="text/javascript"/></script>'."\n";
+						$js .= '<script src="'.str_replace($this->settings['THEMEDIR'], $this->settings['THEMEPATH'], $j).'" type="text/javascript"/></script>'."\n";
 					}
 					echo $js;
 				}
-			}else{
+			}
+			else{
 				return false;
 			}
 		}
 
-		function getSidebarMenuToArray($parentID = 0){
-			global $mysqli;
+		function get_sidebar_array($parent_id = 0){
 
 			$allSidebarMenu = [];
-			$getMenu = $mysqli->query("SELECT *,(SELECT parentID FROM kb_pages WHERE parentID = KP.id LIMIT 1) AS UST FROM kb_pages AS KP WHERE menu = 1 AND parentID = '".$parentID."' ORDER BY orderBy ASC");
-			if($getMenu->num_rows > 0){
+			$getMenu        = $this->db->query("SELECT *,(SELECT parent_id FROM kb_pages WHERE parent_id = KP.id LIMIT 1) AS UST FROM kb_pages AS KP WHERE menu = 1 AND parent_id = '".$parent_id."' ORDER BY orderBy ASC");
+			if($getMenu->num_rows>0){
 				while($menu = $getMenu->fetch_assoc()){
 					if($menu['UST'] == ''){
 						$allSidebarMenu[$menu['id']] = $menu;
-					}else{
-						$allSidebarMenu[$menu['id']] = $menu;
-						$allSidebarMenu[$menu['id']]['sub'] = $this->getSidebarMenuToArray($menu['UST']);
+					}
+					else{
+						$allSidebarMenu[$menu['id']]        = $menu;
+						$allSidebarMenu[$menu['id']]['sub'] = $this->get_sidebar_array($menu['UST']);
 					}
 				}
 			}
@@ -476,76 +490,310 @@
 			return $allSidebarMenu;
 		}
 
-		function getSidebarMenuToHtml(
-			$sidebarMenuArray,
-			$page,
-			$menuHtml = [
-				'ulBefore'      => '<ul class="navbar-nav flex-column">'."\n",
-				'ulAfter'       => '</ul>'."\n",
-				'liBefore'      => '<li class="nav-item">'."\n",
-				'liAfter'       => '</li>'."\n",
-				'linkBefore'    => '<a class="nav-link %s" href="%s">'."\n",
-				'linkAfter'     => "\n".'</a>'."\n",
-				'subLinkBefore' => '<a class="nav-link dropdown %s" href="%s" data-toggle="collapse" aria-expanded="false" data-target="#%s" aria-controls="%s">'."\n",
-				'subLinkAfter'  => "\n".'</a>'."\n",
-			]
-			,$sub = false
-		){
+		function get_sidebar_html($menu_array = null, $page = null, $menu_html = null, $sub_menu_html = null, $sub = false){
 
-			$m = $this->searchArrayValue($sidebarMenuArray, 'template', $page);
-
+			$active = $this->search_array_value($menu_array, 'template', $page);
 			if($sub == false){
-				echo $menuHtml['ulBefore'];
-			}else{
-				$menu = end($sidebarMenuArray);
+				echo $menu_html['ul'];
+			}
+			else{
+				$menu = end($menu_array);
 				if($menu == false){
 					return;
 				}
-				printf($menuHtml['ulBefore'],'menu-'.$menu['parentID'],$m?'collapse show':'');
+				//echo $menu_html['ul'];
+				printf($menu_html['ul'], ($active?'active':''));
 			}
-			foreach($sidebarMenuArray as $id => $menu){
 
-				if($this->userAuthCheck($menu['shortcode'])){
-					echo $menuHtml['liBefore'];
+			foreach($menu_array as $id => $menu){
+
+				if($this->user_auth_check($menu['shortcode'])){
+
 					if(isset($menu['sub']) and is_array($menu['sub'])){
-
-						printf($menuHtml['subLinkBefore'], ($menu['template']==$page?'active':''),$menu['link'], 'menu-'.$menu['UST'], 'menu-'.$menu['UST']);
-						echo '<i class="'.$menu['iconClass'].'"></i>'.$menu['title'];
-						echo $menuHtml['subLinkAfter'];
-						$this->getSidebarMenuToHtml($menu['sub'],$page,
-							[
-								'ulBefore'      => '<div id="%s" class="collapse submenu %s" style=""><ul class="nav flex-column">'."\n",
-								'ulAfter'       => '</ul></div>'."\n",
-								'liBefore'      => '<li class="nav-item">'."\n",
-								'liAfter'       => '</li>'."\n",
-								'linkBefore'    => '<a class="nav-link %s" href="%s">'."\n",
-								'linkAfter'     => "\n".'</a>'."\n",
-								'subLinkBefore' => '<a class="nav-link dropdown %s" href="%s" data-toggle="collapse" aria-expanded="false" data-target="#%s" aria-controls="%s">'."\n",
-								'subLinkAfter'  => "\n".'</a>'."\n"
-							], true);
-
+						printf($menu_html['sub_content'], ($menu['template'] == $page?'active':''));
+						printf($menu_html['a'], $menu['link']);
+						echo '<i class="'.($menu_html['icon_class']??'').' '.$menu['icon_class'].'"></i>';
+						if(isset($menu_html['menu_name'])){
+							printf($menu_html['menu_name'], $menu['title']);
+						}
+						else{
+							echo $menu['title'];
+						}
+						echo $menu_html['/a'];
+						$this->get_sidebar_html($menu['sub'], $page, $sub_menu_html, $sub_menu_html, true);
+						echo $menu_html['/sub_content'];
 					}
 					else{
-						printf($menuHtml['linkBefore'], ($menu['template']==$page?'active':''),$menu['link'], 'menu-'.$menu['id'], 'menu-'.$menu['id']);
-						echo '<i class="'.$menu['iconClass'].'"></i>'.$menu['title'];
-						echo $menuHtml['linkAfter'];
+						printf($menu_html['li'], ($menu['template'] == $page?'active':''));
+						printf($menu_html['a'], $menu['link']);
+						echo '<i class="'.($menu_html['icon_class']??'').' '.$menu['icon_class'].'"></i>';
+						if(isset($menu_html['menu_name'])){
+							printf($menu_html['menu_name'], $menu['title']);
+						}
+						else{
+							echo $menu['title'];
+						}
+						echo $menu_html['/a'];
+						echo $menu_html['/li'];
 					}
-					echo $menuHtml['liAfter'];
+
 				}
+
 			}
-			echo $menuHtml['ulAfter'];
+
+			if($sub == false){
+				echo $menu_html['/ul'];
+			}
+			else{
+				echo $sub_menu_html['/ul'];
+			}
 
 		}
 
-		function searchArrayValue($array = [],$needle,$haystrack){
+		function get_page_lists($filter = 'all', $filterType = 'type'){
+
+			$allPage = [];
+			if($filter == 'all'){
+				$sql = "SELECT * FROM kb_pages";
+			}
+			else{
+				$sql = "SELECT * FROM kb_pages WHERE ".$filterType." = '".$filter."'";
+			}
+			$askPage = $this->db->query($sql);
+			if($askPage->num_rows>0){
+				while($page = $askPage->fetch_assoc()){
+					if($this->user_auth_check($page['shortcode'])){
+						$allPage[] = $page;
+					}
+				}
+			}
+			return $allPage;
+		}
+
+		function get_auth_lists($sub = 'all', $name = 'parent_id'){
+
+			$allAuth = [];
+
+			if($sub == 'all'){
+				$sql = "SELECT * FROM kb_auth";
+			}
+			else{
+				$sql = "SELECT * FROM kb_auth WHERE ".$name." = '".$sub."'";
+			}
+
+			$askPage = $this->db->query($sql);
+			if($askPage->num_rows>0){
+				while($page = $askPage->fetch_assoc()){
+					$allAuth[] = $page;
+				}
+			}
+
+			return $allAuth;
+		}
+
+		function get_user_lists($sub = 'all'){
+
+			$allUsers = [];
+			if($sub == 'all'){
+				$sql = "SELECT * FROM kb_users";
+			}
+			else{
+				$sql = "SELECT * FROM kb_users WHERE parent_id = '".$sub."'";
+			}
+
+			$askUser = $this->db->query($sql);
+			if($askUser->num_rows>0){
+				while($user = $askUser->fetch_assoc()){
+					$allUsers[] = $user;
+				}
+			}
+
+			return $allUsers;
+		}
+
+		function get_page_type_lists(){
+
+			$page_types = $this->db->query("SELECT * FROM kb_pages GROUP BY type");
+			$types      = [];
+			if($page_types->num_rows>0){
+				while($page_type = $page_types->fetch_assoc()){
+					$types[] = $page_type;
+				}
+			}
+			return $types;
+
+		}
+
+		function update_page($pade_id = null, $title = null, $desc = null, $page_link = null, $short_code = null, $page_status = 1, $login_control = 1, $menu = null, $page_type = null, $auth = null, $parent_id = 0, $icon = ''){
+
+			$auth = $auth?array_merge($auth, ["1"]):[1];
+			$auth = json_encode($auth);
+
+			$ask_page = $this->db->query("SELECT * FROM kb_pages WHERE id = '".$pade_id."'");
+			if($ask_page->num_rows>0){
+
+				$page_detail = $ask_page->fetch_assoc();
+
+				$update = $this->db->query("UPDATE kb_pages SET  title='".$title."', description='".$desc."', link='".$page_link."', template='".$short_code."', shortcode='".$short_code."', status='".$page_status."', login_control='".$login_control."', menu='".$menu."', icon_class='".$icon."', type='".$page_type."', user_auth='".$auth."', time='".time()."', parent_id='".$parent_id."' WHERE id = '".$pade_id."'");
+				if($update){
+
+					$sub_ids = $this->array_value_lists($this->get_sidebar_array($pade_id), 'id');
+					if($sub_ids != false){
+						foreach($sub_ids as $pid){
+							$this->db->query("UPDATE kb_pages SET user_auth = '".$auth."' WHERE id = '".$pid."'");
+						}
+					}
+
+					if(file_exists($this->settings['THEMEDIR'].'pages/'.$page_detail['template'].'.php')){
+						rename($this->settings['THEMEDIR'].'pages/'.$page_detail['template'].'.php', $this->settings['THEMEDIR'].'pages/'.$short_code.'.php');
+					}
+
+					$result = [
+					 'status'  => 'success',
+					 'message' => $title._(' Sayfa Düzenlendi'),
+					];
+
+				}
+				else{
+					$result = [
+					 'status'  => 'danger',
+					 'message' => _('Sayfa Düzenlenemedi'),
+					];
+				}
+
+			}
+			else{
+				$result = [
+				 'status'  => 'danger',
+				 'message' => _('Sayfa Bulunamadı'),
+				];
+			}
+
+			return $result;
+		}
+
+		function add_new_page($title = null, $desc = null, $page_link = null, $short_code = null, $page_status = 1, $login_control = 1, $template = null, $menu = null, $page_type = null, $auth = null, $parent_id = 0, $icon = ''){
+
+			$auth = $auth?array_merge($auth, ["1"]):[1];
+			$auth = json_encode($auth);
+
+			$ask_page = $this->db->query("SELECT * FROM kb_pages WHERE shortcode = '".$short_code."' OR template = '".$short_code."'");
+			if($ask_page->num_rows == 0){
+
+				$add = $this->db->query("INSERT INTO kb_pages SET title='".$title."', description='".$desc."', link='".$page_link."', template='".$short_code."', shortcode='".$short_code."', status='".$page_status."', login_control='".$login_control."', menu='".$menu."', icon_class='".$icon."', type='".$page_type."', user_auth='".$auth."', time='".time()."', parent_id='".$parent_id."'");
+				if($add){
+
+					if($page_type == 'keybmin'){
+						$path = KEYBDIR.'keybmin_pages/';
+					}
+					else{
+						$path = $this->settings['THEMEDIR'].$page_type;
+					}
+
+					if(!is_writable($path)){
+						chmod($path, 0755);
+					}
+
+					$open = fopen($path.'/'.$short_code.'.php', 'w');
+					fwrite($open, file_get_contents($this->settings['THEMEDIR'].'templates/'.$template));
+					fclose($open);
+
+					$result = [
+					 'status'  => 'success',
+					 'message' => $title._(' Sayfası Eklendi'),
+					];
+
+				}
+				else{
+					$result = [
+					 'status'  => 'danger',
+					 'message' => _('Sayfa Eklenemedi'),
+					];
+				}
+
+			}
+			else{
+				$result = [
+				 'status'  => 'danger',
+				 'message' => _('Sayfa Zaten Var'),
+				];
+			}
+
+			return $result;
+		}
+
+		function add_new_auth($name = null, $desc = null, $sub_auth = 0){
+
+			$ask_auth = $this->db->query("SELECT * FROM kb_auth WHERE auth_name = '".$name."'");
+			if($ask_auth->num_rows == 0){
+
+				$add_auth = $this->db->query("INSERT INTO kb_auth SET  auth_name='".$name."', auth_desc='".$desc."', parent_id='".($sub_auth??'0')."'");
+				if($add_auth){
+					$result = [
+					 'status'  => 'success',
+					 'message' => $name.' '._('isimli yetki eklendi'),
+					];
+				}
+				else{
+					$result = [
+					 'status'  => 'danger',
+					 'message' => _('Yetki Eklenemedi'),
+					];
+				}
+
+			}
+			else{
+				$result = [
+				 'status'  => 'danger',
+				 'message' => _('This Auth is exists'),
+				];
+			}
+
+			return $result;
+
+		}
+
+		function update_auth($id = null, $name = null, $desc = null, $sub_auth = 0){
+
+			$ask_auth = $this->db->query("SELECT * FROM kb_auth WHERE id = '".$id."'");
+			if($ask_auth->num_rows>0){
+
+				$add_auth = $this->db->query("UPDATE kb_auth SET auth_name='".$name."', auth_desc='".$desc."', parent_id='".($sub_auth??'0')."' WHERE id = '".$id."'");
+				if($add_auth){
+					$result = [
+					 'status'  => 'success',
+					 'message' => $name.' '._('isimli yetki güncellendi'),
+					];
+				}
+				else{
+					$result = [
+					 'status'  => 'danger',
+					 'message' => _('Yetki güncellenemedi'),
+					];
+				}
+
+			}
+			else{
+				$result = [
+				 'status'  => 'danger',
+				 'message' => _('Yetki Bulunamadı'),
+				];
+			}
+
+			return $result;
+
+		}
+
+		function search_array_value($array = [], $needle, $haystrack){
 
 			foreach($array as $key => $value){
 				if(is_array($value)){
-					$sub = $this->searchArrayValue($value, $needle, $haystrack);
+					$sub = $this->search_array_value($value, $needle, $haystrack);
 					if($sub){
 						return true;
 					}
-				}else{
+				}
+				else{
 					if($key == $needle){
 						if($value == $haystrack){
 							return true;
@@ -558,97 +806,43 @@
 			return false;
 		}
 
-		function arrayValueLists($array = [],$keyName){
+		function array_value_lists($array = [], $keyName){
 
-			foreach($array as $key => $value){
+			if($array != null){
+				foreach($array as $key => $value){
 
-				if($key == $keyName){
-					$this->keys[] = $value;
-				}
-
-				if(is_array($value)){
-					$this->arrayValueLists($value, $keyName);
-				}
-
-			}
-
-			return $this->keys;
-		}
-
-		function getPageList($filter = 'all',$filterType='type'){
-			global $mysqli;
-
-			$allPage = [];
-
-			if($filter == 'all'){
-				$sql = "SELECT * FROM kb_pages";
-			}else{
-				$sql = "SELECT * FROM kb_pages WHERE ".$filterType." = '".$filter."'";
-			}
-
-			$askPage = $mysqli->query($sql);
-			if($askPage->num_rows > 0){
-				while($page = $askPage->fetch_assoc()){
-					if($this->userAuthCheck($page['shortcode'])){
-						$allPage[] = $page;
+					if($key == $keyName){
+						$this->keys[] = $value;
 					}
+
+					if(is_array($value)){
+						$this->array_value_lists($value, $keyName);
+					}
+
 				}
+				return $this->keys;
 			}
 
-			return $allPage;
+			return false;
 		}
 
-		function getPageListTree($array,$sub=0){
+		function seo_url($phrase, $maxLength = 100000000000000){
 
+			$result = mb_strtolower($phrase,'utf-8');
 
+			//$result = preg_replace("~[^A-Za-z0-9-\s]~", "", $result);
+			//$result = trim(preg_replace("~[\s-]+~", " ", $result));
+			//$result = trim(substr($result, 0, $maxLength));
+			//$result = preg_replace("~\s~", "-", $result);
 
+			return $result;
 		}
 
-		function getAuthList($sub='all',$name='parentID'){
-			global $mysqli;
+		function __destruct(){
 
-			$allAuth = [];
-
-			if($sub == 'all'){
-				$sql = "SELECT * FROM kb_auth";
-			}else{
-				$sql = "SELECT * FROM kb_auth WHERE ".$name." = '".$sub."'";
+			if(isset($this->db)){
+				$this->db->close();
 			}
-
-			$askPage = $mysqli->query($sql);
-			if($askPage->num_rows > 0){
-				while($page = $askPage->fetch_assoc()){
-					$allAuth[] = $page;
-				}
-			}
-
-			return $allAuth;
 		}
 
-		function getUserList($sub='all'){
-			global $mysqli;
-
-			$allUsers = [];
-
-			if($sub == 'all'){
-				$sql = "SELECT * FROM kb_users";
-			}else{
-				$sql = "SELECT * FROM kb_users WHERE parentID = '".$sub."'";
-			}
-
-			$askUser = $mysqli->query($sql);
-			if($askUser->num_rows > 0){
-				while($user = $askUser->fetch_assoc()){
-					$allUsers[] = $user;
-				}
-			}
-
-			return $allUsers;
-		}
-
-		function getAuthListTree($array,$sub=0){
-
-
-
-		}
 	}

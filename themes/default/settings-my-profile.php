@@ -2,7 +2,7 @@
 
 	if(isset($post) and !empty($post)){
 
-		$required = $this->postControl(['settingLang','settingTheme']);
+		$required = $keybmin->post_control(['settingLang','settingTheme']);
 		if($required === true){
 
 
@@ -45,11 +45,11 @@
                 <div class="row">
                     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
                         <div class="section-block" id="basicform">
-                            <h3 class="section-title"><?=$this->pageInfo['title']?></h3>
-                            <p><?=$this->pageInfo['description']?></p>
+                            <h3 class="section-title"><?=$keybmin->page_info['title']?></h3>
+                            <p><?=$keybmin->page_info['description']?></p>
                         </div>
                         <div class="card">
-                            <h5 class="card-header"><?=$this->pageInfo['title']?> Form</h5>
+                            <h5 class="card-header"><?=$keybmin->page_info['title']?> Form</h5>
                             <div class="card-body">
                                 <form action="" method="post">
                                     <input type="hidden" name="post" value="true">
@@ -60,7 +60,7 @@
                                             <div class="row">
                                                 <div class="col-lg-4">
                                                     <div class="form-group">
-                                                        <label for="pageName" class="col-form-label"><?=_('Logo')?></label>
+                                                        <label for="page_name" class="col-form-label"><?=_('Logo')?></label>
                                                         <br>
                                                         <img src="<?=$this->settings['SITEURL'].'uploads/imgs/'.$this->settings['logo']?>" class="img-thumbnail mr-3">
                                                     </div>

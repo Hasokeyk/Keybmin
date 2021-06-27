@@ -1,22 +1,22 @@
 <?php
 
-    if($this->getControl(['action','userID']) === true and $action == 'del' and is_numeric($userID)){
+    if($keybmin->get_control(['action','user_id']) === true and $action == 'del' and is_numeric($user_id)){
 
-        $askPage = $mysqli->query("SELECT * FROM kb_users WHERE id = '".$userID."'");
+        $askPage = $keybmin->db->query("SELECT * FROM kb_users WHERE id = '".$user_id."'");
         if($askPage->num_rows > 0){
 
-            $ai = $askPage->fetch_assoc();
+            $user_info = $askPage->fetch_assoc();
 
-            $del = $mysqli->query("DELETE FROM kb_users WHERE id = '".$userID."'");
+            $del = $keybmin->db->query("DELETE FROM kb_users WHERE id = '".$user_id."'");
             if($del){
 	            $result = [
 		            'status' => 'success',
-		            'message' => $ai['fullName']._(' user delete'),
+		            'message' => $user_info['full_name']._(' user delete'),
 	            ];
             }else{
 	            $result = [
 		            'status' => 'danger',
-		            'message' => $ai['fullName']._(' not user delete'),
+		            'message' => $user_info['full_name']._(' not user delete'),
 	            ];
             }
 
@@ -26,21 +26,28 @@
 
 	$fileName = pathinfo((__FILE__))['filename'];
 
-	$csses = [
+	$csses = [];
+
+	$jses = [
+		$keybmin->settings['KEYBPATH'].'keybmin_assets/vendor/sweetalert2/js/sweetalert2.all.min.js',
+		$keybmin->settings['KEYBPATH'].'keybmin_assets/js/keybmin.js',
 	];
 
 	require $this->settings['THEMEDIR']."/header.php";
 	require $this->settings['THEMEDIR']."/sidebar.php";
 ?>
-	<div class="dashboard-wrapper">
-        <div class="container-fluid dashboard-content">
+	<div id="main">
 
+		<div class="page-heading">
 
-            <div class="page-title">
-                <h1><?=$this->pageTitle();?></h1>
-                <p><?=$this->pageDesc();?></p>
-            </div>
-            <hr>
+			<div class="page-title">
+				<div class="row">
+					<div class="col-12 col-md-6 order-md-1 order-last">
+						<h3><?=$keybmin->page_title?></h3>
+						<p class="text-subtitle text-muted"><?=$keybmin->page_desc?></p>
+					</div>
+				</div>
+			</div>
 
             <?php
                 if(isset($result)){
@@ -51,7 +58,7 @@
             ?>
 
             <div class="card">
-                <h5 class="card-header"><?=$this->pageInfo['title']?> List</h5>
+                <h5 class="card-header"><?=$keybmin->page_info['title']?> List</h5>
                 <div class="card-body p-0">
                     <table class="table table-striped">
                         <thead>
@@ -66,29 +73,29 @@
                         </thead>
                         <tbody>
                             <?php
-                                $allUsers = $this->getUserList();
+                                $allUsers = $keybmin->get_user_lists();
                                 foreach($allUsers as $user){
                             ?>
                             <tr>
                                 <th scope="row"><?=$user['id']?></th>
-                                <td><?=$user['fullName']?></td>
+                                <td><?=$user['full_name']?></td>
                                 <td><?=$user['mail']?></td>
                                 <td><?=($user['status']==1?'<div class="text-success">'._('Active').'</div>':'<div class="text-danger">'._('Deactive').'</div>')?></td>
                                 <td>
                                     <?php
-                                        $subAuth = $keybmin::getAuthList($user['authID'],'id');
+                                        $subAuth = $keybmin->get_auth_lists($user['auth_id'],'id');
                                         if($subAuth == null){
                                             echo '<div class="text-danger">'._('No Sub Auth').'</div>';
                                         }else{
                                             foreach($subAuth as $auth){
-                                                echo $auth['authName']."\n </br>";
+                                                echo $auth['auth_name']."\n </br>";
                                             }
                                         }
                                     ?>
                                 </td>
                                 <td>
-                                    <a href="?page=users-user-edit&userID=<?=$user['id']?>" class="btn btn-primary"><?=_('Edit')?></a>
-                                    <a href="?page=<?=$page?>&action=del&userID=<?=$user['id']?>" class="btn btn-danger del-btn"><?=_('Del')?></a>
+                                    <a href="?page=users-user-edit&user_id=<?=$user['id']?>" class="btn btn-primary"><?=_('Edit')?></a>
+                                    <a href="?page=<?=$page?>&action=del&user_id=<?=$user['id']?>" class="btn btn-danger del-btn"><?=_('Del')?></a>
                                 </td>
                             </tr>
                             <?php

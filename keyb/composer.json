@@ -1,7 +1,0 @@
-{
-    "require": {
-        "verot/class.upload.php": "^2.0",
-        "ext-gettext": "*",
-        "hasokeyk/array-2-html-form": "^1.0"
-    }
-}

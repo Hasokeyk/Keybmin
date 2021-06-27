@@ -1,0 +1,16 @@
+{
+  "require": {
+    "verot/class.upload.php": "^2.0",
+    "ext-gettext": "*",
+    "hasokeyk/array-2-html-form": "^1.0",
+    "ext-json": "*",
+    "guzzlehttp/guzzle": "^7.0.1"
+  },
+  "autoload": {
+    "files": [
+      "src/open_menu.php",
+      "src/deviceClass.php",
+      "src/PlistParser.php"
+    ]
+  }
+}

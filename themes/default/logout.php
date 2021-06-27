@@ -1,3 +1,5 @@
-<?php ob_start();
-	session_destroy();
-	header('Location:/');
+<?php
+
+    session_destroy();
+
+    header('Location:'.$keybmin->settings['SITEURL']);

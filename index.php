@@ -1,23 +1,20 @@
 <?php
+    
     session_start();
     ob_start();
-
-	/*
-		Hasan Yüksektepe
-		04.05.2020
-		hasanhasokeyk@hotmail.com
-	*/
-
-    global $mysqli,$keybmin;
-
-    //GEREKLİ KÜTÜPHANELER
+    
+    global $keybmin;
+    
     require "48186.php";
-    require KEYB."keybmin.php";
-    //GEREKLİ KÜTÜPHANELER
-
-	use Keybmin\keybmin;
-
-	$keybmin = new keybmin('keybmin',[
-		'test' => true,
-		'lang' => 'tr_TR'
-	]);
+    
+    use Keybmin\keybmin;
+    
+    $keybmin = new keybmin('keybmin', [
+        'test'    => true,
+        'lang'    => 'tr_TR',
+        'page'    => 'dashboard',
+        'db_type' => 'mysqli',
+        'db_name' => '',
+        'db_user' => '',
+        'db_pass' => '',
+    ]);

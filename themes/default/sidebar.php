@@ -1,29 +1,57 @@
-<!-- ============================================================== -->
-<!-- left sidebar -->
-<!-- ============================================================== -->
-<div class="nav-left-sidebar sidebar-dark">
-	<div class="menu-list">
-		<nav class="navbar navbar-expand-lg navbar-light">
-			<a class="d-xl-none d-lg-none" href="/"><?=_('Dashboard')?></a>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-			<div class="collapse navbar-collapse" id="navbarNav">
-				<ul class="navbar-nav flex-column">
-
-
-                    <!--SİDEBAR-->
-                    <?php
-                        //print_r($this->getSidebarMenuToArray());
-                        print_r($this->getSidebarMenuToHtml($this->getSidebarMenuToArray(),$this->page));
-                    ?>
-                    <!--SİDEBAR-->
-
-				</ul>
+<div id="sidebar" class="active">
+	<div class="sidebar-wrapper active">
+		<div class="sidebar-header">
+			<div class="d-flex justify-content-between">
+				<div class="logo">
+					<a href="index.html">
+						<img src="<?=$this->settings['THEMEPATH']?>/assets/images/logo/logo.png" alt="Logo" srcset="">
+					</a>
+				</div>
+				<div class="toggler">
+					<a href="#" class="sidebar-hide d-xl-none d-block">
+						<i class="bi bi-x bi-middle"></i>
+					</a>
+				</div>
 			</div>
-		</nav>
+		</div>
+		<div class="sidebar-menu">
+			<!--SİDEBAR-->
+			<?php
+				global $keybmin;
+
+				$menu_html = [
+					'ul'                     => '<ul class="menu">',
+					'/ul'                    => '</ul>',
+					'li'                     => '<li class="sidebar-item %s">',
+					'/li'                    => '</li>',
+					'a'                      => '<a href="%s" class="sidebar-link">',
+					'/a'                     => '</a>',
+					'sub_content'            => '<li class="sidebar-item has-sub %s">',
+					'/sub_content'           => '</li>',
+					'menu_name'              => '<span>%s</span>',
+					'menu_active_class_name' => 'active',
+				];
+
+				$sub_menu_html = [
+					'ul'                     => '<ul class="submenu %s">',
+					'/ul'                    => '</ul>',
+					'li'                     => '<li class="submenu-item %s">',
+					'/li'                    => '</li>',
+					'a'                      => '<a href="%s" class="sidebar-link">',
+					'/a'                     => '</a>',
+					'sub_content'            => '<li class="sidebar-item has-sub %s">',
+					'/sub_content'           => '</li>',
+					'menu_name'              => '<span>%s</span>',
+					'menu_active_class_name' => 'active',
+				];
+
+				$menu_array = $keybmin->get_sidebar_array();
+				print_r($keybmin->get_sidebar_html($menu_array, $keybmin->page, $menu_html, $sub_menu_html));
+			?>
+			<!--SİDEBAR-->
+		</div>
+		<button class="sidebar-toggler btn x">
+			<i data-feather="x"></i>
+		</button>
 	</div>
 </div>
-<!-- ============================================================== -->
-<!-- end left sidebar -->
-<!-- ============================================================== -->

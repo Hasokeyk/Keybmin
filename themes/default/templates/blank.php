@@ -1,34 +1,39 @@
 <?php
 
+	global $keybmin;
+
 	$fileName = pathinfo((__FILE__))['filename'];
 
-	$csses = [
+	$csses = [];
+	$jses  = [
+		//$this->settings['THEMEPATH'].'assets/js/pages/dashboard.js',
 	];
 
 	require $this->settings['THEMEDIR']."/header.php";
-	require $this->settings['THEMEDIR']."/sidebar.php";
 ?>
-	<div class="dashboard-wrapper">
-        <div class="container-fluid dashboard-content">
+<div id="main">
 
-            <div class="row">
-                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
-                    <div class="section-block" id="basicform">
-                        <h3 class="section-title"><?=$this->pageInfo['title']?></h3>
-                        <p><?=$this->pageInfo['description']?></p>
-                    </div>
+		<div class="page-heading">
 
-                    <!--CONTENT-->
-                    <!--CONTENT-->
-
-                </div>
-            </div>
-
-		</div>
+			<div class="page-title">
+				<div class="row">
+					<div class="col-12 col-md-6 order-md-1 order-last">
+						<h3><?=$keybmin->page_title?></h3>
+						<p class="text-subtitle text-muted"><?=$keybmin->page_desc?></p>
+					</div>
+				</div>
+			</div>
+		<section class="section">
+			<div class="card">
+				<div class="card-header">
+					<h4 class="card-title">Default Layout</h4>
+				</div>
+				<div class="card-body">
+					Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam, commodi? Ullam quaerat similique iusto temporibus, vero aliquam praesentium, odit deserunt eaque nihil saepe hic deleniti? Placeat delectus quibusdam ratione ullam!
+				</div>
+			</div>
+		</section>
 	</div>
-	<!-- ============================================================== -->
-	<!-- end wrapper  -->
-	<!-- ============================================================== -->
-<?php
-	require $this->settings['THEMEDIR']."/footer.php";
-?>
+	<?php
+		require $this->settings['THEMEDIR']."/footer.php";
+	?>
